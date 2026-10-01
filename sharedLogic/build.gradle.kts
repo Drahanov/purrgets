@@ -13,6 +13,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "SharedLogic"
             isStatic = true
+            export(project(":domain"))
         }
     }
     
@@ -36,7 +37,7 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
+            api(project(":domain"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

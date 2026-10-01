@@ -27,5 +27,5 @@ Kotlin Multiplatform for the logic, SwiftUI + WidgetKit for the UI.
 ## Run
 
 - iOS: open `iosApp` in Xcode
-- Tests: `./gradlew :sharedLogic:jvmTest`
+- Tests: `./gradlew :domain:allTests`
 - Diagrams: `python3 docs/diagrams/build.py`
