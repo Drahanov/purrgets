@@ -1,4 +1,8 @@
+@file:OptIn(KotlinNativeCacheApi::class)
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.DisableCacheInKotlinVersion
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCacheApi
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -15,6 +19,12 @@ kotlin {
             baseName = "SharedLogic"
             isStatic = true
             export(project(":domain"))
+            if (appleTarget.name == "macosArm64") {
+                disableNativeCache(
+                    DisableCacheInKotlinVersion.`2_4_20`,
+                    reason = "The prebuilt posix cache links symbols missing from the macOS SDK (_fdscandir, _thread_suspend2, ...)",
+                )
+            }
         }
     }
     

@@ -5,7 +5,7 @@ import kotlin.uuid.Uuid
 
 typealias TrackerId = String
 
-fun newTrackerId(): TrackerId = Uuid.random().toString()
+fun randomTrackerId(): TrackerId = Uuid.random().toString()
 
 data class Tracker(
     val id: TrackerId,

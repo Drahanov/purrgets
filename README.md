@@ -26,6 +26,7 @@ Kotlin Multiplatform for the logic, SwiftUI + WidgetKit for the UI.
 
 ## Run
 
-- iOS: open `iosApp` in Xcode
-- Tests: `./gradlew :domain:allTests`
+- iOS + Mac: `cd apple && xcodegen`, then open `apple/Purrgets.xcodeproj` (schemes PurrgetsiOS, PurrgetsMac)
+- Widget snapshots: run the PurrgetsSnapshotTests scheme (`TEST_RUNNER_RECORD_SNAPSHOTS=1` to re-record)
+- Kotlin tests: `./gradlew :domain:allTests :data:allTests`
 - Diagrams: `python3 docs/diagrams/build.py`

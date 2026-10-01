@@ -14,7 +14,7 @@ import com.drahanov.purrgets.domain.model.Moment
 import com.drahanov.purrgets.domain.model.ProgressRange
 import com.drahanov.purrgets.domain.model.ProgressStyle
 import com.drahanov.purrgets.domain.model.TrackerKind
-import com.drahanov.purrgets.domain.model.newTrackerId
+import com.drahanov.purrgets.domain.model.randomTrackerId
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -33,7 +33,7 @@ class UseCaseTest {
 
     @Test
     fun saveCreatesAndUpdateKeepsCreationTime() = runTest {
-        val id = newTrackerId()
+        val id = randomTrackerId()
         val created = assertIs<SaveResult.Saved>(save(id, "  Trip  ", trip)).tracker
         assertEquals("Trip", created.title)
         assertEquals(clock.now, created.createdAt)
@@ -84,6 +84,6 @@ class UseCaseTest {
 
     @Test
     fun idsAreUnique() {
-        assertNotEquals(newTrackerId(), newTrackerId())
+        assertNotEquals(randomTrackerId(), randomTrackerId())
     }
 }
