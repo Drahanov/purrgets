@@ -27,7 +27,7 @@ final class WidgetSnapshotTests: XCTestCase {
                 let file = folder.appendingPathComponent("\(sample.name)-\(size.rawValue).png")
                 if record || !FileManager.default.fileExists(atPath: file.path) {
                     try png.write(to: file)
-                } else if try Data(contentsOf: file) != png {
+                } else if !Self.looksSame(try Data(contentsOf: file), png) {
                     try png.write(to: file.deletingPathExtension().appendingPathExtension("failed.png"))
                     failures.append(file.lastPathComponent)
                 }
@@ -35,6 +35,36 @@ final class WidgetSnapshotTests: XCTestCase {
             try render(ContactSheet(cards: cards, size: size)).write(to: review.appendingPathComponent("\(size.rawValue).png"))
         }
         XCTAssertTrue(failures.isEmpty, "Changed: \(failures.joined(separator: ", "))")
+    }
+
+    func testChooseTrackerCardAtEverySize() throws {
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        var failures: [String] = []
+        for reason in [ChooseTrackerCard.Reason.pick, .noTrackers] {
+            for size in CardSize.allCases {
+                let png = try render(ChooseTrackerPreview(reason: reason, size: size))
+                let file = folder.appendingPathComponent("choose-\(reason == .pick ? "pick" : "none")-\(size.rawValue).png")
+                if record || !FileManager.default.fileExists(atPath: file.path) {
+                    try png.write(to: file)
+                } else if !Self.looksSame(try Data(contentsOf: file), png) {
+                    try png.write(to: file.deletingPathExtension().appendingPathExtension("failed.png"))
+                    failures.append(file.lastPathComponent)
+                }
+            }
+        }
+        XCTAssertTrue(failures.isEmpty, "Changed: \(failures.joined(separator: ", "))")
+    }
+
+    /// Same size and every channel within 2/255. Byte-exact PNGs differ by rounding noise between runs.
+    private static func looksSame(_ a: Data, _ b: Data) -> Bool {
+        guard let first = NSBitmapImageRep(data: a), let second = NSBitmapImageRep(data: b),
+              first.pixelsWide == second.pixelsWide, first.pixelsHigh == second.pixelsHigh,
+              first.bitsPerPixel == second.bitsPerPixel, first.bytesPerRow == second.bytesPerRow,
+              let p = first.bitmapData, let q = second.bitmapData
+        else { return false }
+        let count = first.bytesPerRow * first.pixelsHigh
+        for index in 0..<count where abs(Int(p[index]) - Int(q[index])) > 2 { return false }
+        return true
     }
 
     private func render(_ view: some View) throws -> Data {
@@ -69,5 +99,27 @@ private struct ContactSheet: View {
         .padding(24)
         .background(Color.white)
         .environment(\.colorScheme, .light)
+    }
+}
+
+/// The empty widget as it looks on the Home or Lock Screen.
+private struct ChooseTrackerPreview: View {
+    var reason: ChooseTrackerCard.Reason
+    var size: CardSize
+
+    var body: some View {
+        let frame = size.previewSize
+        if size.isAccessory {
+            ChooseTrackerCard(reason: reason, size: size)
+                .frame(width: frame.width, height: frame.height)
+                .padding(8)
+                .background(Color(white: 0.12))
+                .environment(\.colorScheme, .dark)
+        } else {
+            ChooseTrackerCard(reason: reason, size: size)
+                .frame(width: frame.width, height: frame.height)
+                .background(Palette.paper)
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        }
     }
 }

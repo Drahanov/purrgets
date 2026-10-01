@@ -2,8 +2,8 @@ import Foundation
 
 /// What a tracker card shows. Plain Swift, so views don't touch Kotlin types.
 /// Built from the Kotlin `TrackerState` in WidgetContent+Kotlin.swift.
-struct WidgetContent {
-    enum Style {
+struct WidgetContent: Equatable {
+    enum Style: Equatable {
         case number
         case ring
         case dots(Dots)
@@ -13,8 +13,8 @@ struct WidgetContent {
         case fatCat(growth: Double)
     }
 
-    struct Dots {
-        enum Shape { case circle, square, paw }
+    struct Dots: Equatable {
+        enum Shape: CaseIterable { case circle, square, paw }
         var total: Int
         var elapsed: Int
         var fillPast: Bool

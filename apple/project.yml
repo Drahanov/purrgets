@@ -163,6 +163,21 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.drahanov.purrgets.snapshot-tests
         GENERATE_INFOPLIST_FILE: YES
 
+  # Editor draft, store and view models, against a Kotlin container on a temp folder.
+  PurrgetsAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    templates: [Kotlin]
+    sources:
+      - AppTests
+      - Shared
+      - path: App
+        excludes: ["*.plist", "*.entitlements", "Assets.xcassets", "PurrgetsApp.swift"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.drahanov.purrgets.app-tests
+        GENERATE_INFOPLIST_FILE: YES
+
 schemes:
   PurrgetsiOS:
     build:
@@ -173,7 +188,13 @@ schemes:
       targets:
         PurrgetsMac: all
     test:
-      targets: [PurrgetsSnapshotTests]
+      targets: [PurrgetsSnapshotTests, PurrgetsAppTests]
+  PurrgetsAppTests:
+    build:
+      targets:
+        PurrgetsAppTests: all
+    test:
+      targets: [PurrgetsAppTests]
   PurrgetsSnapshotTests:
     build:
       targets:

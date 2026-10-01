@@ -135,7 +135,7 @@ extension WidgetContent {
     }
 }
 
-private extension CardTheme {
+extension CardTheme {
     init(_ theme: Theme) {
         switch theme {
         case .marigold: self = .marigold

@@ -5,7 +5,7 @@ struct TrackerEntry: TimelineEntry {
     enum Content {
         case tracker(WidgetContent)
         /// No tracker picked yet, or it was deleted.
-        case chooseTracker
+        case chooseTracker(ChooseTrackerCard.Reason)
     }
 
     let date: Date
@@ -28,12 +28,14 @@ struct TrackerProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: SelectTrackerIntent, in context: Context) async -> Timeline<TrackerEntry> {
-        var picked = configuration.tracker
-        if picked == nil { picked = await TrackerQuery().defaultResult() }
-        guard let id = picked?.id,
+        // No fallback tracker: widgets can't be told apart, so every unpicked widget would show
+        // the same one and change along with it. They ask the user to pick instead.
+        guard let id = configuration.tracker?.id,
               let timeline = try? await Purrgets.container.buildWidgetTimeline.invoke(id: id, maxDots: context.family.cardSize.maxDots)
         else {
-            return Timeline(entries: [TrackerEntry(date: .now, content: .chooseTracker)], policy: .never)
+            let hasTrackers = !((try? await Purrgets.container.listTrackers.invoke()) ?? []).isEmpty
+            // The app reloads all widgets after every save, so this updates once a tracker exists.
+            return Timeline(entries: [TrackerEntry(date: .now, content: .chooseTracker(hasTrackers ? .pick : .noTrackers))], policy: .never)
         }
         let entries = timeline.frames.map { state in
             TrackerEntry(date: state.at.date, content: .tracker(WidgetContent(state: state)))

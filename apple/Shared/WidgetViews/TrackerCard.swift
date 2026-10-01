@@ -82,6 +82,8 @@ struct ValueText: View {
                 .font(.rounded(size, .black))
                 .minimumScaleFactor(0.4)
                 .lineLimit(1)
+                // Digits roll when the value changes: between widget entries and in the app.
+                .contentTransition(.numericText(countsDown: true))
             if !content.unit.isEmpty {
                 Text(content.unit)
                     .font(.rounded(max(11, size * 0.3), .heavy))

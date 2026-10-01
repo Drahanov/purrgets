@@ -85,8 +85,23 @@ struct DotsCard: View {
 }
 
 /// One dot per unit. Picks the column count that makes the dots as big as possible.
-struct DotGridView: View {
+/// Animatable: in the app the filled dots sweep in as a wave.
+struct DotGridView: View, Animatable {
     var dots: WidgetContent.Dots
+    /// Draw in the foreground style instead of ink: for Lock Screen widgets, which the system tints.
+    var onForeground = false
+    private var elapsed: Double
+
+    init(dots: WidgetContent.Dots, onForeground: Bool = false) {
+        self.dots = dots
+        self.onForeground = onForeground
+        elapsed = Double(dots.elapsed)
+    }
+
+    var animatableData: Double {
+        get { elapsed }
+        set { elapsed = newValue }
+    }
 
     var body: some View {
         Canvas { context, size in
@@ -102,10 +117,16 @@ struct DotGridView: View {
                 let x = Double(index % best.columns) * best.cell + (best.cell - dot) / 2
                 let y = Double(index / best.columns) * best.cell + (best.cell - dot) / 2
                 let rect = CGRect(x: x, y: y, width: dot, height: dot)
-                let color = dots.isFilled(index) ? Palette.ink : Palette.ink.opacity(0.16)
-                context.fill(path(for: dots.shape, in: rect), with: .color(color))
+                var layer = context
+                if !isFilled(index) { layer.opacity = onForeground ? 0.3 : 0.16 }
+                layer.fill(path(for: dots.shape, in: rect), with: onForeground ? .foreground : .color(Palette.ink))
             }
         }
+    }
+
+    private func isFilled(_ index: Int) -> Bool {
+        let filled = Double(index) < elapsed.rounded()
+        return dots.fillPast ? filled : !filled
     }
 
     private func path(for shape: WidgetContent.Dots.Shape, in rect: CGRect) -> Path {
@@ -196,34 +217,101 @@ struct FatCatCard: View {
 }
 
 /// Lock Screen sizes. Drawn in .primary: the system tints them.
+/// Each follows the tracker's style, so a dot tracker shows dots on the Lock Screen too.
 struct AccessoryCard: View {
     var content: WidgetContent
     var size: CardSize
 
     var body: some View {
         switch size {
-        case .circular:
-            ProgressRing(fraction: content.fraction, lineWidth: 6, track: .primary.opacity(0.25))
-                .overlay {
-                    VStack(spacing: -3) {
-                        Text(content.value)
-                            .font(.rounded(Int(content.value) == nil ? 12 : 20, .black))
-                            .minimumScaleFactor(0.4)
-                            .lineLimit(1)
-                        Text(content.unit == "%" ? "%" : (content.unit.isEmpty ? "" : "days"))
-                            .font(.rounded(9, .bold))
-                    }
-                    .padding(10)
-                }
-        case .rectangular:
-            VStack(alignment: .leading, spacing: 2) {
-                Text(content.title).font(.rounded(13, .bold)).lineLimit(1)
-                ValueText(content: content, size: 24)
-                ProgressBar(fraction: content.fraction, height: 5, track: .primary.opacity(0.25))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        case .circular: circular
+        case .rectangular: rectangular
         default:
             Text(content.inline).font(.rounded(13, .bold)).lineLimit(1)
         }
+    }
+
+    // MARK: Circular
+
+    @ViewBuilder private var circular: some View {
+        switch content.style {
+        case .number, .fatCat:
+            centre(valueSize: 24)
+        case .dots(let dots):
+            DotRing(dots: dots).overlay { centre(valueSize: 18) }
+        case .ring, .bar, .longCat:
+            ProgressRing(fraction: content.fraction, lineWidth: 6, track: .primary.opacity(0.25))
+                .overlay { centre(valueSize: 20) }
+        }
+    }
+
+    private func centre(valueSize: CGFloat) -> some View {
+        VStack(spacing: -3) {
+            Text(content.value)
+                .font(.rounded(Int(content.value) == nil ? valueSize * 0.6 : valueSize, .black))
+                .minimumScaleFactor(0.4)
+                .lineLimit(1)
+                .contentTransition(.numericText(countsDown: true))
+            if !content.unit.isEmpty {
+                Text(content.unit == "%" ? "%" : "days").font(.rounded(9, .bold))
+            }
+        }
+        .padding(10)
+    }
+
+    // MARK: Rectangular
+
+    private var rectangular: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(content.title).font(.rounded(13, .bold)).lineLimit(1)
+            switch content.style {
+            case .number, .fatCat:
+                ValueText(content: content, size: 28)
+            case .ring:
+                HStack(spacing: 8) {
+                    ProgressRing(fraction: content.fraction, lineWidth: 5, track: .primary.opacity(0.25))
+                        .frame(width: 34, height: 34)
+                    ValueText(content: content, size: 24)
+                }
+            case .dots(let dots):
+                ValueText(content: content, size: 20)
+                DotGridView(dots: dots.squeezed(into: 24), onForeground: true)
+                    .frame(height: 9)
+            case .bar, .longCat:
+                ValueText(content: content, size: 24)
+                ProgressBar(fraction: content.fraction, height: 5, track: .primary.opacity(0.25))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Dots around a circle, filled like the tracker's dot grid: for the circular Lock Screen widget.
+private struct DotRing: View {
+    var dots: WidgetContent.Dots
+
+    var body: some View {
+        Canvas { context, size in
+            let ring = dots.squeezed(into: 16)
+            let radius: Double = min(size.width, size.height) / 2 - 4
+            let midX: Double = size.width / 2
+            let midY: Double = size.height / 2
+            for index in 0..<ring.total {
+                let angle: Double = Double(index) / Double(ring.total) * 2 * Double.pi - Double.pi / 2
+                let x: Double = midX + radius * cos(angle)
+                let y: Double = midY + radius * sin(angle)
+                var layer = context
+                if !ring.isFilled(index) { layer.opacity = 0.3 }
+                layer.fill(Path(ellipseIn: CGRect(x: x - 2.6, y: y - 2.6, width: 5.2, height: 5.2)), with: .foreground)
+            }
+        }
+    }
+}
+
+extension WidgetContent.Dots {
+    /// The same share filled, with [count] dots: Lock Screen widgets have room for only a few.
+    func squeezed(into count: Int) -> Self {
+        let share = total == 0 ? 0 : Double(elapsed) / Double(total)
+        return Self(total: count, elapsed: Int((share * Double(count)).rounded()), fillPast: fillPast, shape: shape)
     }
 }

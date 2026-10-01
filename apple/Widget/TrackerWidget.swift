@@ -42,16 +42,11 @@ struct TrackerWidgetView: View {
                 .containerBackground(for: .widget) {
                     if family.cardSize.isAccessory { Color.clear } else { content.theme.background }
                 }
-        case .chooseTracker:
-            VStack(spacing: 6) {
-                PawPrint().frame(width: 30, height: 30)
-                Text("Hold to choose a tracker")
-                    .font(.rounded(13, .heavy))
-                    .multilineTextAlignment(.center)
-            }
-            .foregroundStyle(Palette.ink)
-            .padding()
-            .containerBackground(Palette.paper, for: .widget)
+        case .chooseTracker(let reason):
+            ChooseTrackerCard(reason: reason, size: family.cardSize)
+                .containerBackground(for: .widget) {
+                    if family.cardSize.isAccessory { Color.clear } else { Palette.paper }
+                }
         }
     }
 }
