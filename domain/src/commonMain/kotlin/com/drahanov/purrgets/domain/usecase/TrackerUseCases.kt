@@ -6,6 +6,7 @@ import com.drahanov.purrgets.domain.engine.TrackerState
 import com.drahanov.purrgets.domain.model.Appearance
 import com.drahanov.purrgets.domain.model.ProgressRange
 import com.drahanov.purrgets.domain.model.Tracker
+import com.drahanov.purrgets.domain.model.TrackerDraft
 import com.drahanov.purrgets.domain.model.TrackerId
 import com.drahanov.purrgets.domain.model.TrackerKind
 import com.drahanov.purrgets.domain.repository.TrackerRepository
@@ -53,6 +54,9 @@ class SaveTracker(
         repository.save(tracker)
         return SaveResult.Saved(tracker)
     }
+
+    suspend operator fun invoke(id: TrackerId, draft: TrackerDraft): SaveResult =
+        invoke(id, draft.title, draft.kind, draft.appearance)
 
     private fun validate(title: String, kind: TrackerKind): List<ValidationError> = buildList {
         if (title.isBlank()) add(ValidationError.EmptyTitle)

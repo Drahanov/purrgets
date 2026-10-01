@@ -8,9 +8,10 @@ plugins {
 kotlin {
     listOf(
         iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
+        iosSimulatorArm64(),
+        macosArm64(),
+    ).forEach { appleTarget ->
+        appleTarget.binaries.framework {
             baseName = "SharedLogic"
             isStatic = true
             export(project(":domain"))
@@ -35,9 +36,14 @@ kotlin {
        }
     }
     
+    compilerOptions {
+        optIn.add("kotlin.time.ExperimentalTime")
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(project(":domain"))
+            implementation(project(":data"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
