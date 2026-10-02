@@ -79,8 +79,6 @@ extension WidgetContent {
             return linear.cat ? .longCat : .bar
         case let linear as ProgressStyleLinear:
             return linear.cat ? .longCat : .bar
-        case is TimeSinceStyleFatCat:
-            return .fatCat(growth: (state.value as? TrackerValueTimeSince)?.value.fatCatGrowth ?? 0)
         default:
             return .number
         }
@@ -159,6 +157,6 @@ private extension WidgetContent.Dots.Shape {
 private extension WidgetContent.Cameo {
     init(_ cameo: SharedLogic.Cameo) {
         let poses: [CameoPose: Pose] = [.peek: .peek, .paws: .paws, .ears: .ears, .tail: .tail, .sleep: .sleep]
-        self.init(cat: cameo.cat == .fat ? .fat : .long, pose: poses[cameo.pose] ?? .peek)
+        self.init(pose: poses[cameo.pose] ?? .peek)
     }
 }

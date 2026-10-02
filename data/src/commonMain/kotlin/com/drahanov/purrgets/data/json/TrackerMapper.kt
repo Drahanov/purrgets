@@ -79,7 +79,6 @@ internal object TrackerMapper {
         TimeSinceStyle.Number -> StyleDto.Number
         TimeSinceStyle.Ring -> StyleDto.Ring
         is TimeSinceStyle.Dots -> StyleDto.Dots(options.toDto())
-        TimeSinceStyle.FatCat -> StyleDto.FatCat
     }
 
     private fun ProgressStyle.toDto() = when (this) {
@@ -99,8 +98,7 @@ internal object TrackerMapper {
     private fun StyleDto.toTimeSinceStyle() = when (this) {
         StyleDto.Ring -> TimeSinceStyle.Ring
         is StyleDto.Dots -> TimeSinceStyle.Dots(dots.toDomain())
-        StyleDto.FatCat -> TimeSinceStyle.FatCat
-        StyleDto.Number, is StyleDto.Linear -> TimeSinceStyle.Number
+        StyleDto.Number, StyleDto.FatCat, is StyleDto.Linear -> TimeSinceStyle.Number
     }
 
     private fun StyleDto.toProgressStyle() = when (this) {

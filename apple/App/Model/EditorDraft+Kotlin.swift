@@ -124,7 +124,6 @@ extension EditorDraft {
         switch look {
         case .ring: TimeSinceStyleRing.shared
         case .dots: TimeSinceStyleDots(options: dotOptions)
-        case .fatCat: TimeSinceStyleFatCat.shared
         default: TimeSinceStyleNumber.shared
         }
     }
@@ -158,7 +157,6 @@ extension EditorDraft {
         case let dots as ProgressStyleDots: setDots(dots.options)
         case let linear as CountdownStyleLinear: look = linear.cat ? .longCat : .bar
         case let linear as ProgressStyleLinear: look = linear.cat ? .longCat : .bar
-        case is TimeSinceStyleFatCat: look = .fatCat
         default: look = .number
         }
     }

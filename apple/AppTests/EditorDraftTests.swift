@@ -60,9 +60,10 @@ final class EditorDraftTests: XCTestCase {
         draft.setKind(.timeSince)
         XCTAssertEqual(draft.look, .ring)
 
-        draft.look = .fatCat
-        draft.setKind(.progress)
-        XCTAssertEqual(draft.look, .number, "Progress has no fat cat")
+        draft.setKind(.countdown)
+        draft.look = .longCat
+        draft.setKind(.timeSince)
+        XCTAssertEqual(draft.look, .number, "Time since has no long cat")
     }
 
     func testSwitchingKindMovesTheDateToTheRightSideOfToday() {

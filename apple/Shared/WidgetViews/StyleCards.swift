@@ -187,35 +187,6 @@ struct LongCatCard: View {
     }
 }
 
-struct FatCatCard: View {
-    var content: WidgetContent
-    var growth: Double
-    var medium: Bool
-
-    var body: some View {
-        if medium {
-            HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 0) {
-                    CardTitle(text: content.title)
-                    Spacer(minLength: 0)
-                    ValueText(content: content, size: 56)
-                    CaptionText(content: content)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                FatCatView(growth: growth).frame(width: 150)
-            }
-        } else {
-            VStack(alignment: .leading, spacing: 0) {
-                CardTitle(text: content.title)
-                ValueText(content: content, size: 34)
-                CaptionText(content: content)
-                FatCatView(growth: growth)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-    }
-}
-
 /// Lock Screen sizes. Drawn in .primary: the system tints them.
 /// Each follows the tracker's style, so a dot tracker shows dots on the Lock Screen too.
 struct AccessoryCard: View {
@@ -235,7 +206,7 @@ struct AccessoryCard: View {
 
     @ViewBuilder private var circular: some View {
         switch content.style {
-        case .number, .fatCat:
+        case .number:
             centre(valueSize: 24)
         case .dots(let dots):
             DotRing(dots: dots).overlay { centre(valueSize: 18) }
@@ -265,7 +236,7 @@ struct AccessoryCard: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(content.title).font(.rounded(13, .bold)).lineLimit(1)
             switch content.style {
-            case .number, .fatCat:
+            case .number:
                 ValueText(content: content, size: 28)
             case .ring:
                 HStack(spacing: 8) {

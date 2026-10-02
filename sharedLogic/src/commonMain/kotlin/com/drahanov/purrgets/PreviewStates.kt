@@ -3,7 +3,6 @@ package com.drahanov.purrgets
 import com.drahanov.purrgets.domain.calc.Cameo
 import com.drahanov.purrgets.domain.calc.CameoPose
 import com.drahanov.purrgets.domain.calc.CameoReason
-import com.drahanov.purrgets.domain.calc.Cat
 import com.drahanov.purrgets.domain.engine.TrackerEngine
 import com.drahanov.purrgets.domain.engine.TrackerState
 import com.drahanov.purrgets.domain.model.Appearance
@@ -58,7 +57,6 @@ object PreviewStates {
         tracker("since-number", "No sugar", TrackerKind.TimeSince(quit, TimeSinceStyle.Number), Theme.Sand),
         tracker("since-ring", "No sugar", TrackerKind.TimeSince(quit, TimeSinceStyle.Ring), Theme.Tangerine),
         tracker("since-dots", "No sugar", TrackerKind.TimeSince(quit, TimeSinceStyle.Dots(DotOptions(shape = DotShape.Square))), Theme.Marigold),
-        tracker("since-fat-cat", "No sugar", TrackerKind.TimeSince(quit, TimeSinceStyle.FatCat), Theme.Sand),
         tracker("year-number", "2026", TrackerKind.Progress(ProgressRange.Year, ProgressStyle.Number), Theme.Paper),
         tracker("year-ring", "2026", TrackerKind.Progress(ProgressRange.Year, ProgressStyle.Ring), Theme.Tangerine),
         tracker("year-dots", "2026", TrackerKind.Progress(ProgressRange.Year, ProgressStyle.Dots()), Theme.Sand),
@@ -70,11 +68,10 @@ object PreviewStates {
             PreviewState(name, engine.state(tracker, now, zone, maxDots).copy(cameo = null))
         }
         val base = plain.first { it.name == "countdown-number" }.state
-        val cameos = CameoPose.entries.mapIndexed { index, pose ->
-            val cat = if (index % 2 == 0) Cat.Long else Cat.Fat
+        val cameos = CameoPose.entries.map { pose ->
             PreviewState(
                 "cameo-${pose.name.lowercase()}",
-                base.copy(cameo = Cameo(cat, pose, CameoReason.Random, now, now + 2.hours)),
+                base.copy(cameo = Cameo(pose, CameoReason.Random, now, now + 2.hours)),
             )
         }
         return plain + cameos

@@ -9,6 +9,9 @@ enum Palette {
     static let paper = Color(hex: 0xF6F1E7)
     static let nose = Color(hex: 0xF2A0A6)
     static let cream = Color(hex: 0xF6F1E7)
+    /// Cat whiskers: outside the body, and drawn over black (concept/cats).
+    static let whisker = Color(hex: 0x6B4A45)
+    static let whiskerOnInk = Color(hex: 0xCFC8BC)
 }
 
 enum CardTheme: CaseIterable {

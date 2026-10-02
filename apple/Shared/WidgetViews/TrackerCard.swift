@@ -36,7 +36,6 @@ struct TrackerCard: View {
         case .dots(let dots): DotsCard(content: content, dots: dots, medium: medium)
         case .bar: BarCard(content: content, medium: medium)
         case .longCat: LongCatCard(content: content, medium: medium)
-        case .fatCat(let growth): FatCatCard(content: content, growth: growth, medium: medium)
         }
     }
 }

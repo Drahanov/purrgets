@@ -11,7 +11,6 @@ sealed interface TimeSinceStyle {
     data object Number : TimeSinceStyle
     data object Ring : TimeSinceStyle
     data class Dots(val options: DotOptions = DotOptions()) : TimeSinceStyle
-    data object FatCat : TimeSinceStyle
 }
 
 sealed interface ProgressStyle {

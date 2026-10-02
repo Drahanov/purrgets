@@ -59,7 +59,6 @@ extension EditorDraft.Look {
         case .dots: "Dots"
         case .bar: "Bar"
         case .longCat: "Long cat"
-        case .fatCat: "Fat cat"
         }
     }
 }

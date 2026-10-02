@@ -53,6 +53,7 @@ sealed interface StyleDto {
     @Serializable @SerialName("ring") data object Ring : StyleDto
     @Serializable @SerialName("dots") data class Dots(val dots: DotsDto = DotsDto()) : StyleDto
     @Serializable @SerialName("linear") data class Linear(val cat: Boolean = false) : StyleDto
+    /** Removed style; older files may still have it. Read as Number, never written. */
     @Serializable @SerialName("fatCat") data object FatCat : StyleDto
 }
 

@@ -49,9 +49,8 @@ class CameoTest {
     }
 
     @Test
-    fun everyCatAndPoseShowsUp() {
+    fun everyPoseShowsUp() {
         val visits = random()
-        assertEquals(Cat.entries.toSet(), visits.map { it.cat }.toSet())
         assertEquals(CameoPose.entries.toSet(), visits.map { it.pose }.toSet())
         assertEquals(setOf(8, 13, 18), visits.map { it.from.toLocalDateTime(Kyiv).hour }.toSet())
     }

@@ -51,9 +51,4 @@ class TimeSinceTest {
         assertEquals(0.0, value.fraction)
     }
 
-    @Test
-    fun fatCatGrowsUntilCap() {
-        assertEquals(0.0, calc("2025-08-01T12:00").fatCatGrowth)
-        assertEquals(1.0, calc("2027-01-01T12:00").fatCatGrowth)
-    }
 }

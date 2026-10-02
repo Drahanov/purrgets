@@ -53,8 +53,6 @@ extension WidgetContent {
                 ? Int((Double(dots.elapsed) * t).rounded())
                 : dots.total - Int((Double(dots.total - dots.elapsed) * t).rounded())
             copy.style = .dots(dots)
-        case .fatCat(let growth):
-            copy.style = .fatCat(growth: growth * t)
         default:
             break
         }

@@ -10,7 +10,6 @@ struct WidgetContent: Equatable {
         case bar
         case longCat
         /// 0…1, how round the cat is.
-        case fatCat(growth: Double)
     }
 
     struct Dots: Equatable {
@@ -24,9 +23,7 @@ struct WidgetContent: Equatable {
     }
 
     struct Cameo: Equatable {
-        enum Cat { case long, fat }
         enum Pose: CaseIterable { case peek, paws, ears, tail, sleep }
-        var cat: Cat
         var pose: Pose
     }
 

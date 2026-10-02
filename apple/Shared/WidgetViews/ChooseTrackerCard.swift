@@ -19,7 +19,7 @@ struct ChooseTrackerCard: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                CameoView(cameo: .init(cat: .long, pose: .paws))
+                CameoView(cameo: .init(pose: .paws))
             }
             .foregroundStyle(Palette.ink)
         }

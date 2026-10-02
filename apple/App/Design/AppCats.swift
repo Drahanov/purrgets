@@ -1,18 +1,17 @@
 import SwiftUI
 
 // Cats that live in the app. Widgets can't animate, so this is where the cats get to move.
-// They reuse the widget's placeholder cat parts, so they change with the art.
+// They draw the same cat art as the widgets (Shared/Cats).
 
 /// A cat head that blinks now and then, glances around and hops when tapped.
 struct BlinkingCat: View {
     var size: CGFloat = 44
-    var wide = false
     @State private var hops = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.18)) { context in
-            CatHead(width: size, wide: wide, asleep: isBlinking(at: context.date))
+            CatHead(width: size, asleep: isBlinking(at: context.date))
                 .rotationEffect(.degrees(tilt(at: context.date)), anchor: .bottom)
                 .animation(Motion.gentle, value: tilt(at: context.date))
         }
@@ -59,31 +58,23 @@ struct HopFrame {
     var stretch: CGFloat = 1
 }
 
-/// The empty-state cat: curled up asleep, with z's floating away.
+/// The empty-state cat: lying asleep, with z's floating away.
 struct SleepingCat: View {
     var size: CGFloat = 120
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            ZStack(alignment: .bottomTrailing) {
-                Tail()
-                    .scaleEffect(x: -1)
-                    .frame(width: size * 0.3, height: size * 0.28)
-                    .offset(x: size * 0.12, y: -size * 0.02)
-                Capsule()
-                    .frame(width: size, height: size * 0.42)
-                CatHead(width: size * 0.46, asleep: true)
-                    .offset(x: -size * 0.04, y: -size * 0.12)
-            }
-            .phaseAnimator([0.0, 1.0]) { cat, phase in
-                // Breathing.
-                cat.scaleEffect(x: 1 + phase * 0.015, y: 1 + phase * 0.035, anchor: .bottom)
-            } animation: { _ in .easeInOut(duration: 1.6) }
+            CatArt(pose: .lying, eyesClosed: true)
+                .frame(width: size, height: size / CatArt.aspect(.lying))
+                .phaseAnimator([0.0, 1.0]) { cat, phase in
+                    // Breathing.
+                    cat.scaleEffect(x: 1 + phase * 0.015, y: 1 + phase * 0.035, anchor: .bottom)
+                } animation: { _ in .easeInOut(duration: 1.6) }
             FloatingZs(size: size * 0.16)
                 .offset(x: size * 0.05, y: -size * 0.35)
         }
         .foregroundStyle(Palette.ink)
-        .frame(width: size * 1.2, height: size * 0.8)
+        .frame(width: size * 1.2, height: size * 0.6)
         .accessibilityHidden(true)
     }
 }

@@ -10,7 +10,7 @@ struct EditorDraft: Equatable {
 
     /// The widget style. Each kind accepts only some of them (see `looks(for:)`).
     enum Look: String, CaseIterable, Identifiable {
-        case number, ring, dots, bar, longCat, fatCat
+        case number, ring, dots, bar, longCat
         var id: Self { self }
     }
 
@@ -53,7 +53,7 @@ struct EditorDraft: Equatable {
     static func looks(for kind: Kind) -> [Look] {
         switch kind {
         case .countdown: [.number, .ring, .dots, .bar, .longCat]
-        case .timeSince: [.number, .ring, .dots, .fatCat]
+        case .timeSince: [.number, .ring, .dots]
         case .progress: [.number, .ring, .dots, .bar, .longCat]
         }
     }

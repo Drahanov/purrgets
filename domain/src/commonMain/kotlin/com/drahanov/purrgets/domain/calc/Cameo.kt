@@ -12,8 +12,6 @@ import kotlinx.datetime.toInstant
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
-enum class Cat { Long, Fat }
-
 enum class CameoPose {
     /** Head pops up over the bottom edge. */
     Peek,
@@ -31,7 +29,6 @@ enum class CameoReason { Milestone, Random }
 
 /** A cat visiting the widget between [from] and [until]. */
 data class Cameo(
-    val cat: Cat,
     val pose: CameoPose,
     val reason: CameoReason,
     val from: Instant,
@@ -41,8 +38,8 @@ data class Cameo(
 }
 
 /**
- * Milestone days: a Peek all day. Other days: about one in [RANDOM_ODDS] gets a random cat
- * and pose for 2–4 hours in the morning, afternoon or evening.
+ * Milestone days: a Peek all day. Other days: about one in [RANDOM_ODDS] gets a random pose
+ * pose for 2–4 hours in the morning, afternoon or evening.
  * Seeded by tracker and date, so a reload never changes it.
  */
 object CameoSchedule {
@@ -54,11 +51,8 @@ object CameoSchedule {
 
     fun cameo(trackerId: TrackerId, date: LocalDate, zone: TimeZone, isMilestoneDay: Boolean): Cameo? {
         val seed = Seed(fnv1a("$trackerId|$date"))
-        val cat = Cat.entries[seed.next(Cat.entries.size)]
-
         if (isMilestoneDay) {
             return Cameo(
-                cat = cat,
                 pose = CameoPose.Peek,
                 reason = CameoReason.Milestone,
                 from = date.atStartOfDayIn(zone),
@@ -72,7 +66,7 @@ object CameoSchedule {
         val minute = seed.next(60)
         val length = (MIN_HOURS + seed.next(MAX_HOURS - MIN_HOURS + 1)).hours
         val from = LocalDateTime(date, LocalTime(hour, minute)).toInstant(zone)
-        return Cameo(cat, pose, CameoReason.Random, from, from + length)
+        return Cameo(pose, CameoReason.Random, from, from + length)
     }
 
     /** Hands out small numbers from one hash, a few bits at a time. */

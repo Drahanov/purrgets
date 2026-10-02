@@ -51,7 +51,7 @@ class JsonTrackerRepositoryTest {
     private val all = listOf(
         tracker("1", TrackerKind.Countdown(Moment(LocalDate(2026, 12, 15)), CountdownStyle.Dots(DotOptions(DotUnit.Week, DotShape.Paw, false)))),
         tracker("2", TrackerKind.Countdown(Moment(LocalDate(2026, 12, 15), LocalTime(14, 30), TimeZone.of("Europe/Kyiv")), CountdownStyle.Linear(cat = true)), Theme.Sand),
-        tracker("3", TrackerKind.TimeSince(Moment(LocalDate(2025, 8, 1), LocalTime(9, 15)), TimeSinceStyle.FatCat), Theme.Marigold),
+        tracker("3", TrackerKind.TimeSince(Moment(LocalDate(2025, 8, 1), LocalTime(9, 15)), TimeSinceStyle.Ring), Theme.Marigold),
         tracker("4", TrackerKind.Progress(ProgressRange.Custom(Moment(LocalDate(2026, 1, 1)), Moment(LocalDate(2026, 6, 30))), ProgressStyle.Ring), Theme.Paper),
         tracker("5", TrackerKind.Progress(ProgressRange.Week, ProgressStyle.Number)),
     )
@@ -133,6 +133,13 @@ class JsonTrackerRepositoryTest {
         val style = (tracker.kind as TrackerKind.Countdown).style as CountdownStyle.Dots
         assertEquals(DotShape.Circle, style.options.shape)
         assertEquals(Theme.Tangerine, tracker.appearance.theme)
+    }
+
+    @Test
+    fun removedFatCatStyleBecomesNumber() = runTest {
+        repository.save(all[2])
+        writeRaw(readRaw().replace("\"type\": \"ring\"", "\"type\": \"fatCat\""))
+        assertEquals(TimeSinceStyle.Number, (repository.all().single().kind as TrackerKind.TimeSince).style)
     }
 
     @Test

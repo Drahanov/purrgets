@@ -37,11 +37,7 @@ data class TimeSinceValue(
     /** Progress toward [nextMilestone], from the previous milestone (or the start). */
     val fraction: Double,
     val isMilestoneDay: Boolean,
-    /** 0..1, how round the fat cat is. Grows until [FAT_CAT_FULL_DAYS] and never resets. */
-    val fatCatGrowth: Double,
 )
-
-const val FAT_CAT_FULL_DAYS = 365
 
 object TimeSinceCalculator {
 
@@ -67,7 +63,6 @@ object TimeSinceCalculator {
             nextMilestoneDate = nextDate,
             fraction = previousDate.daysUntil(today).toDouble() / previousDate.daysUntil(nextDate),
             isMilestoneDay = isMilestoneDay,
-            fatCatGrowth = (days.toDouble() / FAT_CAT_FULL_DAYS).coerceAtMost(1.0),
         )
     }
 }

@@ -29,7 +29,7 @@ class TemplateLibrary : TemplateSource {
         progress("week", "This week", ProgressRange.Week, ProgressStyle.Ring, Theme.Paper),
         Template(
             id = "days-since",
-            draft = TrackerDraft("Days since", TrackerKind.TimeSince(Moment(today), TimeSinceStyle.FatCat), Appearance(Theme.Sand)),
+            draft = TrackerDraft("Days since", TrackerKind.TimeSince(Moment(today), TimeSinceStyle.Number), Appearance(Theme.Sand)),
         ),
     )
 
