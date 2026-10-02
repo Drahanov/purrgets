@@ -40,6 +40,14 @@ struct EditorView: View {
                 }
                 // A failed save scrolls to what needs fixing, then points at it.
                 .onChange(of: model.shakes) { reveal(using: scroller) }
+                #if DEBUG
+                .task {
+                    // Screenshots: `--editor-cats` opens the editor scrolled to the cat visits.
+                    guard ProcessInfo.processInfo.arguments.contains("--editor-cats") else { return }
+                    try? await Task.sleep(for: .milliseconds(600))
+                    withAnimation { scroller.scrollTo("cats", anchor: .center) }
+                }
+                #endif
             }
             .background(Palette.paper.ignoresSafeArea())
             .onGeometryChange(for: Bool.self, of: { $0.size.width > 720 }) { wide = $0 }
@@ -145,10 +153,13 @@ struct EditorView: View {
                 }
             }
             .arrive(3)
+            CatVisitsSection(model: model)
+                .id("cats")
+                .arrive(4)
             EditorSection(title: "Colour") {
                 ThemeSwatches(theme: $model.draft.theme)
             }
-            .arrive(4)
+            .arrive(5)
             if !model.isNew {
                 Button("Delete tracker", role: .destructive) { confirmDelete = true }
                     .font(.rounded(15, .heavy))

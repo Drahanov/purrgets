@@ -40,6 +40,8 @@ struct EditorDraft: Equatable {
     var dotUnit: DotUnit = .auto
     var fillPast = true
     var theme: CardTheme = .tangerine
+    /// Cats may visit the card now and then. Only Number cards show them.
+    var cameos = true
 
     init(kind: Kind = .countdown, today: Date = .now, calendar: Calendar = .current) {
         let start = calendar.startOfDay(for: today)
@@ -47,7 +49,6 @@ struct EditorDraft: Equatable {
         day = kind == .countdown ? calendar.date(byAdding: .day, value: 30, to: start)! : start
         rangeStart = start
         rangeEnd = calendar.date(byAdding: .month, value: 3, to: start)!
-        if kind == .progress { look = .bar }
     }
 
     static func looks(for kind: Kind) -> [Look] {
@@ -70,6 +71,9 @@ struct EditorDraft: Equatable {
         kind = newKind
         if !looks.contains(look) { look = .number }
     }
+
+    /// Cats only visit this style.
+    var showsCameos: Bool { look == .number && cameos }
 
     var isTitleEmpty: Bool { title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 

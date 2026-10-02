@@ -54,6 +54,8 @@ class JsonTrackerRepositoryTest {
         tracker("3", TrackerKind.TimeSince(Moment(LocalDate(2025, 8, 1), LocalTime(9, 15)), TimeSinceStyle.Ring), Theme.Marigold),
         tracker("4", TrackerKind.Progress(ProgressRange.Custom(Moment(LocalDate(2026, 1, 1)), Moment(LocalDate(2026, 6, 30))), ProgressStyle.Ring), Theme.Paper),
         tracker("5", TrackerKind.Progress(ProgressRange.Week, ProgressStyle.Number)),
+        tracker("6", TrackerKind.TimeSince(Moment(LocalDate(2026, 9, 1)), TimeSinceStyle.Number))
+            .copy(appearance = Appearance(Theme.Sand, cameos = false)),
     )
 
     @AfterTest
@@ -86,7 +88,7 @@ class JsonTrackerRepositoryTest {
         val renamed = all[1].copy(title = "Renamed")
         repository.save(renamed)
         repository.delete("4")
-        assertEquals(listOf("1", "2", "3", "5"), repository.all().map { it.id })
+        assertEquals(listOf("1", "2", "3", "5", "6"), repository.all().map { it.id })
         assertEquals(renamed, repository.get("2"))
         assertNull(repository.get("4"))
     }

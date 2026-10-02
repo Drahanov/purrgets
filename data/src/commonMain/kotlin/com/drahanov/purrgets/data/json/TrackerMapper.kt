@@ -28,7 +28,7 @@ internal object TrackerMapper {
             is TrackerKind.TimeSince -> KindDto.TimeSince(kind.start.toDto(), kind.style.toDto())
             is TrackerKind.Progress -> KindDto.Progress(kind.range.toDto(), kind.style.toDto())
         },
-        appearance = AppearanceDto(ThemeDto.valueOf(tracker.appearance.theme.name)),
+        appearance = AppearanceDto(ThemeDto.valueOf(tracker.appearance.theme.name), tracker.appearance.cameos),
         createdAt = tracker.createdAt.toString(),
         updatedAt = tracker.updatedAt.toString(),
     )
@@ -41,7 +41,7 @@ internal object TrackerMapper {
             is KindDto.TimeSince -> TrackerKind.TimeSince(kind.start.toDomain(), kind.style.toTimeSinceStyle())
             is KindDto.Progress -> TrackerKind.Progress(kind.range.toDomain(), kind.style.toProgressStyle())
         },
-        appearance = Appearance(Theme.valueOf(dto.appearance.theme.name)),
+        appearance = Appearance(Theme.valueOf(dto.appearance.theme.name), dto.appearance.cameos),
         createdAt = Instant.parse(dto.createdAt),
         updatedAt = Instant.parse(dto.updatedAt),
     )

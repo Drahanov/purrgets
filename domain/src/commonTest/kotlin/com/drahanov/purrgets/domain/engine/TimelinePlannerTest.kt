@@ -56,6 +56,16 @@ class TimelinePlannerTest {
     }
 
     @Test
+    fun numberCardWithCameosOffOnlyChangesAtMidnight() {
+        val t = tracker(TrackerKind.Countdown(Moment(date("2026-12-15")), CountdownStyle.Number)).let {
+            it.copy(appearance = it.appearance.copy(cameos = false))
+        }
+        val plan = planner.plan(t, now, Kyiv)
+        assertEquals(listOf(now, at("2026-10-02T00:00")), plan.moments)
+        assertNull(engine.state(t, now, Kyiv, DotLimits.SMALL).cameo)
+    }
+
+    @Test
     fun exactCountdownGetsAFrameAtTheTarget() {
         val kind = TrackerKind.Countdown(Moment(date("2026-10-01"), LocalTime(14, 30), Kyiv), CountdownStyle.Number)
         val t = tracker(kind)

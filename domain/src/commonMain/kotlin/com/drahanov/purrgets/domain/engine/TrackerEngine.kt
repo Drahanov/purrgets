@@ -100,9 +100,9 @@ class TrackerEngine {
     }
 }
 
-/** Cats only visit Number cards (the spec). */
+/** Cats only visit Number cards (the spec), and only when the user lets them. */
 val Tracker.showsCameos: Boolean
-    get() = when (val kind = kind) {
+    get() = appearance.cameos && when (val kind = kind) {
         is TrackerKind.Countdown -> kind.style == CountdownStyle.Number
         is TrackerKind.TimeSince -> kind.style == TimeSinceStyle.Number
         is TrackerKind.Progress -> kind.style == ProgressStyle.Number

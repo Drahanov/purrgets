@@ -32,7 +32,8 @@ sealed interface ProgressRange {
     data class Custom(val start: Moment, val end: Moment) : ProgressRange
 }
 
-data class Appearance(val theme: Theme = Theme.Tangerine) {
+/** [cameos]: cats may visit the card now and then (only Number cards have room for them). */
+data class Appearance(val theme: Theme = Theme.Tangerine, val cameos: Boolean = true) {
     companion object {
         val Default = Appearance()
     }

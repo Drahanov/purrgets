@@ -10,17 +10,18 @@ typealias KotlinTimeZone = Kotlinx_datetimeTimeZone
 extension EditorDraft {
 
     init(tracker: Tracker) {
-        self.init(title: tracker.title, kind: tracker.kind, theme: tracker.appearance.theme)
+        self.init(title: tracker.title, kind: tracker.kind, appearance: tracker.appearance)
     }
 
     init(draft: TrackerDraft) {
-        self.init(title: draft.title, kind: draft.kind, theme: draft.appearance.theme)
+        self.init(title: draft.title, kind: draft.kind, appearance: draft.appearance)
     }
 
-    private init(title: String, kind: TrackerKind, theme: Theme) {
+    private init(title: String, kind: TrackerKind, appearance: Appearance) {
         self.init()
         self.title = title
-        self.theme = CardTheme(theme)
+        theme = CardTheme(appearance.theme)
+        cameos = appearance.cameos
         switch kind {
         case let countdown as TrackerKindCountdown:
             self.kind = .countdown
@@ -61,7 +62,7 @@ extension EditorDraft {
         }
     }
 
-    var appearance: Appearance { Appearance(theme: theme.kotlin) }
+    var appearance: Appearance { Appearance(theme: theme.kotlin, cameos: cameos) }
 
     /// A tracker for the live preview. The title falls back to a placeholder, and a custom range
     /// that ends before it starts is drawn as one day, so the preview never breaks mid-edit.

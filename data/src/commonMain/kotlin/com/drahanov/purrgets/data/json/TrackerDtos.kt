@@ -80,7 +80,7 @@ enum class DotShapeDto {
 }
 
 @Serializable
-data class AppearanceDto(val theme: ThemeDto = ThemeDto.Tangerine)
+data class AppearanceDto(val theme: ThemeDto = ThemeDto.Tangerine, val cameos: Boolean = true)
 
 @Serializable
 enum class ThemeDto {
