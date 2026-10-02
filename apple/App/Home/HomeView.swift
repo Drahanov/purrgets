@@ -102,7 +102,9 @@ struct HomeView: View {
             }
         }
         .sheet(item: $guide) { _ in
-            AddWidgetGuide(content: store.trackers.last.map { store.content(for: $0, size: .small) }) { hideGuide = true }
+            AddWidgetGuide(cards: store.trackers.last.map { tracker in GuideCards { store.content(for: tracker, size: $0) } } ?? .sample) {
+                hideGuide = true
+            }
         }
         .confirmationDialog(
             "Delete “\(deleting?.title ?? "")”?", isPresented: .init(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
