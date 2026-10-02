@@ -25,6 +25,8 @@ struct MeetJoe: View {
     @State private var tilt: Double = 0
     @State private var jolts = 0
     @State private var hops = 0
+    /// Counts the cards landing on the pile, one tap each.
+    @State private var landings = 0
     /// The pile fades once Joe has leapt off it.
     @State private var pileGone = false
 
@@ -78,6 +80,11 @@ struct MeetJoe: View {
                 .opacity(awake ? 0 : 1)
         }
         .sensoryFeedback(.impact(weight: .heavy), trigger: jolts)
+        // Each card lands a little harder as the pile grows.
+        .sensoryFeedback(trigger: landings) { _, count in
+            .impact(flexibility: .rigid, intensity: 0.45 + 0.15 * Double(count))
+        }
+        .sensoryFeedback(.impact(weight: .light), trigger: hops)
         .onShake { shakeOff() }
         .task { await tellTheStory() }
     }
@@ -93,7 +100,10 @@ struct MeetJoe: View {
         try? await Task.sleep(for: .seconds(0.5))
         for count in 1...Pile.cards.count {
             withAnimation(.spring(duration: 0.45, bounce: 0.3)) { cardsIn = count }
-            try? await Task.sleep(for: .seconds(0.2))
+            // The spring reaches its spot about here: that's the landing.
+            try? await Task.sleep(for: .seconds(0.14))
+            landings += 1
+            try? await Task.sleep(for: .seconds(0.06))
         }
         try? await Task.sleep(for: .seconds(0.35))
         // Thud: in he drops, onto the top card.

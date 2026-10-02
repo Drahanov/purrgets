@@ -47,6 +47,9 @@ struct CreateMenu: View {
     var zoom: Namespace.ID
     var pick: (CreateOption) -> Void
 
+    /// One tap per option as it springs up.
+    @State private var rowsIn = 0
+
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             if isOpen {
@@ -66,7 +69,7 @@ struct CreateMenu: View {
                                 .asymmetric(
                                     insertion: .scale(scale: 0.4, anchor: .bottomTrailing)
                                         .combined(with: .opacity)
-                                        .animation(Motion.bouncy.delay(Motion.stagger(CreateOption.allCases.count - 1 - index, step: 0.035))),
+                                        .animation(Motion.bouncy.delay(Motion.stagger(CreateOption.allCases.count - 1 - index, step: 0.05))),
                                     removal: .scale(scale: 0.6, anchor: .bottomTrailing).combined(with: .opacity)
                                 )
                             )
@@ -78,6 +81,17 @@ struct CreateMenu: View {
             .padding(.bottom, 12)
         }
         .sensoryFeedback(.impact(weight: .medium), trigger: isOpen)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: rowsIn)
+        .task(id: isOpen) {
+            guard isOpen else { return }
+            // In step with the rows' staggered entrance, after the + button's own tap.
+            try? await Task.sleep(for: .seconds(0.06))
+            for _ in CreateOption.allCases {
+                guard !Task.isCancelled else { return }
+                rowsIn += 1
+                try? await Task.sleep(for: .seconds(0.05))
+            }
+        }
     }
 
     private var plusButton: some View {

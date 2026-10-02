@@ -32,6 +32,9 @@ struct EmptyShelf: View {
     /// The cat drops onto the shelf from above when the scene first appears.
     @State private var catDrop: CGFloat = -360
     @State private var thuds = 0
+    /// The paw hitting the card, and the next card sliding onto the shelf.
+    @State private var swats = 0
+    @State private var refills = 0
     /// When the person last did something; the cat only fidgets after a quiet spell.
     @State private var lastTouch = Date.now
 
@@ -64,6 +67,8 @@ struct EmptyShelf: View {
         .foregroundStyle(Palette.ink)
         .sensoryFeedback(.impact(weight: .medium), trigger: thuds)
         .sensoryFeedback(.impact(weight: .light), trigger: hops)
+        .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.8), trigger: swats)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.45), trigger: refills)
         .task { await run() }
     }
 
@@ -253,6 +258,7 @@ struct EmptyShelf: View {
             await show(.lift, for: 0.08)
             await show(.raise, for: impatient ? 0.25 : 0.5)
             show(.swat)
+            swats += 1
             await nap(0.06)
         }
 
@@ -268,9 +274,12 @@ struct EmptyShelf: View {
             shelf.removeFirst()
         }
         withAnimation(Motion.bouncy.delay(0.1)) { addToShelf() }
-        thuds += 1
-
+        // Felt when the card lands below, then as the next one settles on the shelf.
         await nap(0.3)
+        thuds += 1
+        await nap(0.12)
+        refills += 1
+
         await show(.lift, for: 0.08)
         show(.rest)
         // Pleased with himself.

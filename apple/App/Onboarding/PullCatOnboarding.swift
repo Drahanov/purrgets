@@ -34,6 +34,11 @@ struct PullCatOnboarding: View {
     @State private var lastTouch = Date.now
     @State private var tugs = 0
     @State private var boings = 0
+    /// He grabs the top (a thud), then bobs on it (a softer one).
+    @State private var catches = 0
+    @State private var bobs = 0
+    /// Fading taps as he shoots up and away, the first the strongest.
+    @State private var whooshes = 0
     /// Set after a pull too small to count: the hint asks for more.
     @State private var further = false
     @State private var screen = CGSize(width: 390, height: 800)
@@ -51,8 +56,16 @@ struct PullCatOnboarding: View {
             .onChange(of: outer.safeAreaInsets.top) { _, top in safeTop = top }
         }
         .foregroundStyle(Palette.ink)
-        .sensoryFeedback(.selection, trigger: Rig.label(for: pullDays).text)
+        // A tap for every step of time on his belly (1 day, 2 days...), firmer the further he's pulled.
+        .sensoryFeedback(trigger: Rig.label(for: pullDays).text) { _, _ in
+            leaving ? nil : .impact(flexibility: .rigid, intensity: 0.35 + 0.65 * rig.progress(pull))
+        }
         .sensoryFeedback(.impact(weight: .heavy), trigger: boings)
+        .sensoryFeedback(.impact(weight: .heavy), trigger: catches)
+        .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.5), trigger: bobs)
+        .sensoryFeedback(trigger: whooshes) { _, count in
+            .impact(flexibility: .soft, intensity: max(0.8 - 0.25 * Double(count - 1), 0.2))
+        }
         .task { await idle() }
     }
 
@@ -93,6 +106,13 @@ struct PullCatOnboarding: View {
                 if !arrived {
                     // Drops in from his leap and catches the top, with a bit of a bounce.
                     withAnimation(.spring(duration: 0.6, bounce: 0.38).delay(0.05)) { arrived = true }
+                    // Felt as he catches the top, then as he bobs back down on it.
+                    Task {
+                        try? await Task.sleep(for: .seconds(0.27))
+                        catches += 1
+                        try? await Task.sleep(for: .seconds(0.3))
+                        bobs += 1
+                    }
                 }
                 #if DEBUG
                 // For screenshots: --intro-pull 0.5 shows him pulled halfway.
@@ -262,7 +282,11 @@ struct PullCatOnboarding: View {
                     spin = Bool.random() ? 9 : -9
                 }
                 withAnimation(.easeOut(duration: time * 0.5)) { streak = 1.18 }
-                try? await Task.sleep(for: .seconds(time * 0.85))
+                // Fading taps as he whizzes off.
+                for _ in 0..<3 {
+                    whooshes += 1
+                    try? await Task.sleep(for: .seconds(time * 0.85 / 3))
+                }
             }
             done()
         }
