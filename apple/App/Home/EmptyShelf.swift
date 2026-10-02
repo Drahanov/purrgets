@@ -20,6 +20,8 @@ struct EmptyShelf: View {
     @State private var leaving: [Int: CGFloat] = [:]
     /// Each card's spin, so a falling card tumbles and a thrown one keeps turning.
     @State private var spin: [Int: Double] = [:]
+    /// How far a thrown card has dropped. Animated apart from its sideways flight, so together they make an arc.
+    @State private var drop: [Int: CGFloat] = [:]
     @State private var drag: CGFloat = 0
     @State private var nextTemplate = 0
     @State private var nextID = 0
@@ -122,8 +124,9 @@ struct EmptyShelf: View {
             .rotationEffect(.degrees(place.rotation), anchor: place.isTipping ? .bottomTrailing : .center)
             .position(place.center)
             .offset(x: place.isLanded ? drag : 0)
+            .offset(y: drop[item.id] ?? 0)
             .opacity(place.opacity)
-            .zIndex(place.isLanded ? 1 : 0)
+            .zIndex(place.isLanded || leaving[item.id] != nil ? 1 : 0)
             .onTapGesture { tap(item) }
             .gesture(place.isLanded ? swipe(item) : nil)
             .accessibilityElement()
@@ -186,7 +189,8 @@ struct EmptyShelf: View {
     private func place(of id: Int, _ layout: Layout) -> Place {
         let turn = spin[id] ?? 0
         if let side = leaving[id] {
-            return Place(center: CGPoint(x: layout.landing.x + side * layout.width, y: layout.landing.y + 80), scale: 0.9, rotation: turn, opacity: 0)
+            // Well past the screen edge, so it flies out rather than fading away.
+            return Place(center: CGPoint(x: layout.landing.x + side * (layout.width + Layout.card), y: layout.landing.y), scale: 0.92, rotation: turn)
         }
         if id == landed {
             return Place(center: layout.landing, scale: 1, rotation: turn, isLanded: true)
@@ -263,20 +267,28 @@ struct EmptyShelf: View {
         withAnimation(Motion.gentle) { cat.look = 0 }
     }
 
-    /// Throws the landed card off screen, to [side].
+    /// Throws the landed card off screen, to [side]: it shoots out fast and tumbling, rises a little,
+    /// then drops away like a real throw. The cat watches it go.
     private func throwAway(_ side: CGFloat, thenKnock: Bool) async {
         guard let id = landed else { return }
-        withAnimation(.easeIn(duration: 0.3)) {
+        let flight = reduceMotion ? 0.25 : 0.6
+        withAnimation(reduceMotion ? .easeIn(duration: flight) : .timingCurve(0.15, 0.6, 0.4, 1, duration: flight)) {
             leaving[id] = side
-            spin[id, default: 0] += side * 40
+            spin[id, default: 0] += reduceMotion ? 0 : side * 160
             landed = nil
             drag = 0
         }
+        if !reduceMotion {
+            // A pull back up first (control point below 0), then gravity takes over.
+            withAnimation(.timingCurve(0.3, -0.5, 0.75, 0.6, duration: flight)) { drop[id] = 260 }
+            if thenKnock { withAnimation(Motion.snappy) { cat.look = side } }
+        }
         Task {
-            await nap(0.4)
+            await nap(flight + 0.1)
             items.removeAll { $0.id == id }
             leaving[id] = nil
             spin[id] = nil
+            drop[id] = nil
         }
         if thenKnock {
             await nap(0.25)
