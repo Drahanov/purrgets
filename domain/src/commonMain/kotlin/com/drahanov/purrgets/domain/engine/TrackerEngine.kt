@@ -70,13 +70,9 @@ class TrackerEngine {
                 TrackerValue.Progress(value) to dots
             }
         }
-        val cameo = cameo(tracker, today, zone)?.takeIf { it.isVisibleAt(at) }
+        val cameo = if (tracker.showsCameos) CameoSchedule.cameo(tracker.id, at, isMilestoneDay(tracker, today, zone)) else null
         return TrackerState(tracker, at, value, dots, cameo)
     }
-
-    /** The cat visit planned for [date], visible or not. The planner uses it to add frames. */
-    fun cameo(tracker: Tracker, date: LocalDate, zone: TimeZone): Cameo? =
-        CameoSchedule.cameo(tracker.id, date, zone, isMilestoneDay(tracker, date, zone))
 
     /** 100 days left, 1 week left, tomorrow, halfway; or a time-since milestone. */
     private fun isMilestoneDay(tracker: Tracker, date: LocalDate, zone: TimeZone): Boolean {
@@ -103,3 +99,11 @@ class TrackerEngine {
         val COUNTDOWN_MILESTONES = setOf(100, 7)
     }
 }
+
+/** Cats only visit Number cards (the spec). */
+val Tracker.showsCameos: Boolean
+    get() = when (val kind = kind) {
+        is TrackerKind.Countdown -> kind.style == CountdownStyle.Number
+        is TrackerKind.TimeSince -> kind.style == TimeSinceStyle.Number
+        is TrackerKind.Progress -> kind.style == ProgressStyle.Number
+    }

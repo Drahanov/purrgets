@@ -1,7 +1,9 @@
 package com.drahanov.purrgets
 
 import com.drahanov.purrgets.domain.calc.Cameo
+import com.drahanov.purrgets.domain.calc.CameoLook
 import com.drahanov.purrgets.domain.calc.CameoPose
+import com.drahanov.purrgets.domain.calc.CameoSchedule
 import com.drahanov.purrgets.domain.calc.CameoReason
 import com.drahanov.purrgets.domain.engine.TrackerEngine
 import com.drahanov.purrgets.domain.engine.TrackerState
@@ -21,7 +23,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import kotlin.time.Duration.Companion.hours
 
 class PreviewState(val name: String, val state: TrackerState)
 
@@ -71,7 +72,7 @@ object PreviewStates {
         val cameos = CameoPose.entries.map { pose ->
             PreviewState(
                 "cameo-${pose.name.lowercase()}",
-                base.copy(cameo = Cameo(pose, CameoReason.Random, now, now + 2.hours)),
+                base.copy(cameo = Cameo(pose, CameoLook.Ahead, false, CameoReason.Random, now, now + CameoSchedule.SLOT)),
             )
         }
         return plain + cameos

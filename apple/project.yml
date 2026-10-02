@@ -83,6 +83,9 @@ targets:
       path: App/Info-iOS.plist
       properties:
         CFBundleDisplayName: Purrgets
+        CFBundleURLTypes:
+          - CFBundleURLName: com.drahanov.purrgets
+            CFBundleURLSchemes: [purrgets]
         PurrgetsAppGroup: $(PURRGETS_APP_GROUP)
         NSCalendarsFullAccessUsageDescription: Purrgets reads your calendar so you can turn an event into a countdown.
         UILaunchScreen: {}
@@ -115,6 +118,9 @@ targets:
       path: App/Info-macOS.plist
       properties:
         CFBundleDisplayName: Purrgets
+        CFBundleURLTypes:
+          - CFBundleURLName: com.drahanov.purrgets
+            CFBundleURLSchemes: [purrgets]
         PurrgetsAppGroup: $(PURRGETS_APP_GROUP)
         NSCalendarsFullAccessUsageDescription: Purrgets reads your calendar so you can turn an event into a countdown.
     entitlements:

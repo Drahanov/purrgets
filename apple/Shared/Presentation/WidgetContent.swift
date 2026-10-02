@@ -23,8 +23,12 @@ struct WidgetContent: Equatable {
     }
 
     struct Cameo: Equatable {
-        enum Pose: CaseIterable { case peek, paws, ears, tail, sleep }
+        enum Pose: CaseIterable { case paws, tail, hang, walk, tall }
         var pose: Pose
+        /// Where it looks on screen: -1 left, 0 ahead, 1 right.
+        var look: Double = 0
+        /// Napping.
+        var eyesClosed = false
     }
 
     var title: String

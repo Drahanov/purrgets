@@ -1,35 +1,34 @@
 package com.drahanov.purrgets.domain.calc
 
 import com.drahanov.purrgets.domain.model.TrackerId
-import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.plus
-import kotlinx.datetime.toInstant
-import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
+/** The lying cat belongs to Progress cards, so cameos use the other poses. */
 enum class CameoPose {
-    /** Head pops up over the bottom edge. */
-    Peek,
-    /** Front paws hang over the top edge. */
+    /** Hanging upside down from the top edge, head and paws showing. */
     Paws,
-    /** Only the ears stick up from the bottom. */
-    Ears,
-    /** The tail swishes in from the side. */
+    /** The tail rises in from the bottom-right corner. */
     Tail,
-    /** Curled up asleep on the top edge. */
-    Sleep,
+    /** Dangling from the top edge by its front paws. */
+    Hang,
+    /** Strolling in from the right edge. */
+    Walk,
+    /** Standing tall, half behind the right edge. */
+    Tall,
 }
+
+/** Where the cat looks. */
+enum class CameoLook { Ahead, Left, Right }
 
 enum class CameoReason { Milestone, Random }
 
 /** A cat visiting the widget between [from] and [until]. */
 data class Cameo(
     val pose: CameoPose,
+    val look: CameoLook,
+    /** Napping, eyes shut. */
+    val eyesClosed: Boolean,
     val reason: CameoReason,
     val from: Instant,
     val until: Instant,
@@ -38,35 +37,44 @@ data class Cameo(
 }
 
 /**
- * Milestone days: a Peek all day. Other days: about one in [RANDOM_ODDS] gets a random pose
- * pose for 2–4 hours in the morning, afternoon or evening.
- * Seeded by tracker and date, so a reload never changes it.
+ * A cat is always around and moves every [SLOT]: a new pose, a new glance, now and then a nap.
+ * [SLOT] is as often as Apple lets widget frames change ("at least about 5 minutes apart").
+ * On milestone days every other slot is Paws. Seeded by tracker and slot, so a reload never
+ * changes it and two widgets don't move in step.
  */
 object CameoSchedule {
-    const val RANDOM_ODDS = 3
+    val SLOT = 5.minutes
 
-    private val START_HOURS = listOf(8, 13, 18)
-    private const val MIN_HOURS = 2
-    private const val MAX_HOURS = 4
+    /** One slot in [NAP_ODDS] is a nap. */
+    const val NAP_ODDS = 8
 
-    fun cameo(trackerId: TrackerId, date: LocalDate, zone: TimeZone, isMilestoneDay: Boolean): Cameo? {
-        val seed = Seed(fnv1a("$trackerId|$date"))
-        if (isMilestoneDay) {
-            return Cameo(
-                pose = CameoPose.Peek,
-                reason = CameoReason.Milestone,
-                from = date.atStartOfDayIn(zone),
-                until = date.plus(DatePeriod(days = 1)).atStartOfDayIn(zone),
-            )
-        }
-        if (seed.next(RANDOM_ODDS) != 0) return null
+    /** The start of the slot [at] falls in. Slots line up with the clock: :00, :05, :10… */
+    fun slotStart(at: Instant): Instant {
+        val slot = SLOT.inWholeSeconds
+        return Instant.fromEpochSeconds(at.epochSeconds.floorDiv(slot) * slot)
+    }
 
-        val pose = CameoPose.entries[seed.next(CameoPose.entries.size)]
-        val hour = START_HOURS[seed.next(START_HOURS.size)]
-        val minute = seed.next(60)
-        val length = (MIN_HOURS + seed.next(MAX_HOURS - MIN_HOURS + 1)).hours
-        val from = LocalDateTime(date, LocalTime(hour, minute)).toInstant(zone)
-        return Cameo(pose, CameoReason.Random, from, from + length)
+    fun cameo(trackerId: TrackerId, at: Instant, isMilestoneDay: Boolean): Cameo {
+        val from = slotStart(at)
+        val slot = from.epochSeconds / SLOT.inWholeSeconds
+        val seed = Seed(fnv1a("$trackerId|$slot"))
+        val roll = seed.next(CameoPose.entries.size)
+        val pose = if (isMilestoneDay && slot % 2 == 0L) CameoPose.Paws else pose(trackerId, slot, roll)
+        return Cameo(
+            pose = pose,
+            look = CameoLook.entries[seed.next(CameoLook.entries.size)],
+            eyesClosed = seed.next(NAP_ODDS) == 0,
+            reason = if (isMilestoneDay) CameoReason.Milestone else CameoReason.Random,
+            from = from,
+            until = from + SLOT,
+        )
+    }
+
+    /** A random pose that hardly ever repeats the slot before, so the cat keeps moving. */
+    private fun pose(trackerId: TrackerId, slot: Long, roll: Int): CameoPose {
+        val previous = Seed(fnv1a("$trackerId|${slot - 1}")).next(CameoPose.entries.size)
+        val index = if (roll == previous) (roll + 1) % CameoPose.entries.size else roll
+        return CameoPose.entries[index]
     }
 
     /** Hands out small numbers from one hash, a few bits at a time. */

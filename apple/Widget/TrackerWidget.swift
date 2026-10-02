@@ -39,9 +39,11 @@ struct TrackerWidgetView: View {
         switch entry.content {
         case .tracker(let content):
             TrackerCard(content: content, size: family.cardSize)
+                .environment(\.pokeTrackerID, entry.trackerID)
                 .containerBackground(for: .widget) {
                     if family.cardSize.isAccessory { Color.clear } else { content.theme.background }
                 }
+                .widgetURL(entry.trackerID.map(AppLink.tracker))
         case .chooseTracker(let reason):
             ChooseTrackerCard(reason: reason, size: family.cardSize)
                 .containerBackground(for: .widget) {

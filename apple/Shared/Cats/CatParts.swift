@@ -22,9 +22,21 @@ struct CatPose {
     let size: CGSize
     let layers: [(CatLayer, [Path])]
 
+    /// How far the pupils can slide sideways and stay inside the eyes, in pose units.
+    let lookReach: CGFloat
+
     init(width: CGFloat, height: CGFloat, layers: [(CatLayer, [String])]) {
         size = CGSize(width: width, height: height)
         self.layers = layers.map { layer, paths in (layer, paths.map(Self.parse)) }
+        let eyes = self.layers.filter { $0.0 == .eyes }.flatMap(\.1).map(\.boundingRect)
+        let pupils = self.layers.filter { $0.0 == .pupils }.flatMap(\.1).map(\.boundingRect)
+        // For each pupil, the room left in the smallest eye around it.
+        let room = pupils.compactMap { pupil in
+            eyes.filter { $0.contains(CGPoint(x: pupil.midX, y: pupil.midY)) }
+                .map { min(pupil.minX - $0.minX, $0.maxX - pupil.maxX) }
+                .min()
+        }
+        lookReach = max(room.min() ?? 0, 0) * 0.85
     }
 
     func paths(_ layer: CatLayer) -> [Path] {
@@ -115,6 +127,8 @@ struct CatArt: View {
     var pose: CatPose
     var warp = CatWarp()
     var eyesClosed = false
+    /// Where the pupils point: -1 left, 0 ahead, 1 right. Animates.
+    var look: CGFloat = 0
     var hidden: Set<CatLayer> = []
     var anchor: UnitPoint = .bottom
 
@@ -122,7 +136,7 @@ struct CatArt: View {
         let shown = CatLayer.allCases.filter { !hidden.contains($0) && !(eyesClosed && $0.isOpenEye) }
         ZStack {
             ForEach(shown, id: \.self) { layer in
-                CatLayerShape(pose: pose, layer: layer, warp: warp, hidden: hidden, anchor: anchor)
+                CatLayerShape(pose: pose, layer: layer, warp: warp, look: layer.follows ? look : 0, hidden: hidden, anchor: anchor)
                     .fill(layer.color)
             }
             if eyesClosed {
@@ -142,20 +156,24 @@ struct CatArt: View {
 
 private extension CatLayer {
     var isOpenEye: Bool { self == .eyes || self == .pupils || self == .highlights }
+    /// Moves with the gaze.
+    var follows: Bool { self == .pupils || self == .highlights }
 }
 
 private struct CatLayerShape: Shape {
     var pose: CatPose
     var layer: CatLayer
     var warp: CatWarp
+    /// Slides the layer sideways by this share of the pose's lookReach.
+    var look: CGFloat = 0
     var hidden: Set<CatLayer>
     var anchor: UnitPoint
     /// Draws the eyes as sleepy arcs instead.
     var closed = false
 
-    var animatableData: CatWarp {
-        get { warp }
-        set { warp = newValue }
+    var animatableData: AnimatablePair<CatWarp, CGFloat> {
+        get { AnimatablePair(warp, look) }
+        set { (warp, look) = (newValue.first, newValue.second) }
     }
 
     func path(in rect: CGRect) -> Path {
@@ -167,6 +185,7 @@ private struct CatLayerShape: Shape {
             y: rect.minY + (rect.height - box.height * scale) * anchor.y - box.minY * scale
         )
         let place = CGAffineTransform(translationX: origin.x, y: origin.y).scaledBy(x: scale, y: scale)
+            .translatedBy(x: look * pose.lookReach, y: 0)
         var out = Path()
         for path in pose.paths(layer) {
             let bent = Self.bend(path, warp)

@@ -10,12 +10,16 @@ final class TrackerStore {
     private(set) var trackers: [Tracker] = []
     private(set) var templates: [Template] = []
     private(set) var isLoaded = false
+    /// Widgets per tracker id. Apps can't remove widgets, so deleting a tracker says how many are left.
+    private(set) var widgetCounts: [String: Int] = [:]
 
     private let container: AppContainer
     private let reloadWidgets: () -> Void
+    private let countWidgets: () async -> [String: Int]
 
-    init(container: AppContainer, reloadWidgets: @escaping () -> Void) {
+    init(container: AppContainer, countWidgets: @escaping () async -> [String: Int] = { [:] }, reloadWidgets: @escaping () -> Void) {
         self.container = container
+        self.countWidgets = countWidgets
         self.reloadWidgets = reloadWidgets
     }
 
@@ -25,6 +29,21 @@ final class TrackerStore {
         trackers = (try? await container.listTrackers.invoke()) ?? []
         templates = container.listTemplates.invoke()
         isLoaded = true
+        await refreshWidgetCounts()
+    }
+
+    func refreshWidgetCounts() async {
+        widgetCounts = await countWidgets()
+    }
+
+    /// The delete dialog's note on the tracker's widgets.
+    func deleteNote(for id: String) -> String {
+        let place = Platform.isMac ? "desktop" : "Home Screen"
+        switch widgetCounts[id] ?? 0 {
+        case 0: return "It isn't on any widget."
+        case 1: return "It's on 1 widget. That widget will ask you to pick another tracker, or you can remove it from your \(place)."
+        case let count: return "It's on \(count) widgets. They will ask you to pick another tracker, or you can remove them from your \(place)."
+        }
     }
 
     func tracker(id: String) -> Tracker? { trackers.first { $0.id == id } }

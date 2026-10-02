@@ -2,6 +2,7 @@ package com.drahanov.purrgets.domain.engine
 
 import com.drahanov.purrgets.domain.Kyiv
 import com.drahanov.purrgets.domain.at
+import com.drahanov.purrgets.domain.calc.CameoSchedule
 import com.drahanov.purrgets.domain.calc.DotLimits
 import com.drahanov.purrgets.domain.date
 import com.drahanov.purrgets.domain.model.CountdownStyle
@@ -27,13 +28,14 @@ class TimelinePlannerTest {
     private val now = at("2026-10-01T12:00")
     private val horizon = at("2026-10-03T00:00")
 
-    /** Cat arrive/leave moments the planner must add on top of the others. */
-    private fun cameoMoments(t: Tracker) = listOf(date("2026-10-01"), date("2026-10-02"))
-        .mapNotNull { engine.cameo(t, it, Kyiv) }
-        .flatMap { listOf(it.from, it.until) }
-        .filter { it >= now && it < horizon }
+    /** Cat moves (every slot on Number cards) the planner adds on top of the others. */
+    private fun cameoMoments(t: Tracker) =
+        if (t.showsCameos) generateSequence(now + CameoSchedule.SLOT) { it + CameoSchedule.SLOT }.takeWhile { it < horizon }.toList()
+        else emptyList()
 
-    private fun expected(t: Tracker, vararg moments: Instant) = (moments.toList() + cameoMoments(t)).distinct().sorted()
+    /** The first frames of the plan: the planner cuts plans at maxEntries. */
+    private fun expected(t: Tracker, vararg moments: Instant) =
+        (moments.toList() + cameoMoments(t)).distinct().sorted().take(TimelinePlanner.DEFAULT_MAX_ENTRIES)
 
     @Test
     fun dateCountdownChangesAtMidnight() {
@@ -41,6 +43,15 @@ class TimelinePlannerTest {
         val t = tracker(kind)
         val plan = planner.plan(t, now, Kyiv)
         assertEquals(expected(t, now, at("2026-10-02T00:00")), plan.moments)
+        // A cat move every 5 minutes fills the plan in 2 hours.
+        assertEquals(at("2026-10-01T14:00"), plan.reloadAt)
+    }
+
+    @Test
+    fun cardsWithoutCatsOnlyChangeAtMidnight() {
+        val t = tracker(TrackerKind.Countdown(Moment(date("2026-12-15")), CountdownStyle.Ring))
+        val plan = planner.plan(t, now, Kyiv)
+        assertEquals(listOf(now, at("2026-10-02T00:00")), plan.moments)
         assertEquals(horizon, plan.reloadAt)
     }
 

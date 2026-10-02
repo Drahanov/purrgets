@@ -1,5 +1,6 @@
 import SharedLogic
 import SwiftUI
+import WidgetKit
 
 /// What the editor opens with. [sourceID] names the card or button it zooms out of.
 struct EditorRequest: Identifiable {
@@ -10,7 +11,7 @@ struct EditorRequest: Identifiable {
 }
 
 enum HomeSheet: String, Identifiable {
-    case library, calendar
+    case library, calendar, cats
     var id: Self { self }
 }
 
@@ -39,7 +40,7 @@ struct HomeView: View {
         ZStack(alignment: .bottomTrailing) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    HomeHeader(count: store.trackers.count)
+                    HomeHeader(count: store.trackers.count) { sheet = .cats }
                     if store.isLoaded {
                         if store.trackers.isEmpty {
                             EmptyHome(templates: store.templates) { template in
@@ -87,6 +88,7 @@ struct HomeView: View {
             switch sheet {
             case .library: LibraryView(pick: pickFromSheet)
             case .calendar: CalendarImportView(pick: pickFromSheet)
+            case .cats: CatShowView()
             }
         }
         .sheet(item: $guide) { _ in
@@ -97,12 +99,18 @@ struct HomeView: View {
             titleVisibility: .visible, presenting: deleting
         ) { tracker in
             Button("Delete", role: .destructive) { Task { await store.delete(id: tracker.id) } }
-        } message: { _ in
-            Text("Its widgets will ask you to pick another tracker.")
+        } message: { tracker in
+            Text(store.deleteNote(for: tracker.id))
+        }
+        .onChange(of: deleting?.id) { _, id in
+            if id != nil { Task { await store.refreshWidgetCounts() } }
         }
         .task {
             await store.load()
             await runLaunchArguments()
+        }
+        .onOpenURL { url in
+            Task { await openLink(url) }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await store.load() } }
@@ -168,6 +176,16 @@ struct HomeView: View {
         editor = EditorRequest(draft: draft, trackerID: trackerID, sourceID: source)
     }
 
+    /// A widget tap: open that tracker in the editor.
+    private func openLink(_ url: URL) async {
+        guard let id = AppLink.trackerID(url) else { return }
+        await store.load()
+        guard let tracker = store.tracker(id: id) else { return }
+        sheet = nil
+        guide = nil
+        open(EditorDraft(tracker: tracker), trackerID: tracker.id, from: tracker.id)
+    }
+
     private func pickFromSheet(_ draft: EditorDraft) {
         nextEditor = EditorRequest(draft: draft, trackerID: nil, sourceID: CreateMenu.sourceID)
         sheet = nil
@@ -204,6 +222,10 @@ struct HomeView: View {
             open(draft, from: CreateMenu.sourceID)
         }
         if arguments.contains("--guide") { guide = GuideRequest(id: "debug") }
+        if arguments.contains("--cats") { sheet = .cats }
+        if arguments.contains("--cat-show-off") { CatShow.isOn = false; WidgetCenter.shared.reloadAllTimelines() }
+        if arguments.contains("--cat-show-on") { CatShow.isOn = true; WidgetCenter.shared.reloadAllTimelines() }
+        if arguments.contains("--reload-widgets") { WidgetCenter.shared.reloadAllTimelines() }
         #endif
     }
 }
@@ -212,6 +234,8 @@ struct HomeView: View {
 
 private struct HomeHeader: View {
     var count: Int
+    /// Tapping the cat opens the cat show.
+    var openCats: () -> Void
 
     var body: some View {
         HStack(alignment: .bottom) {
@@ -225,6 +249,7 @@ private struct HomeHeader: View {
             }
             Spacer()
             BlinkingCat(size: 40)
+                .simultaneousGesture(TapGesture().onEnded(openCats))
                 .padding(.bottom, 4)
         }
         .padding(.top, Platform.isMac ? 8 : 12)

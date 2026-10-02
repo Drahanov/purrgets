@@ -1,62 +1,55 @@
 package com.drahanov.purrgets.domain.calc
 
-import com.drahanov.purrgets.domain.Kyiv
 import com.drahanov.purrgets.domain.at
-import com.drahanov.purrgets.domain.date
-import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.plus
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class CameoTest {
-    private val start = date("2026-01-01")
-    private val days = (0 until 3000).map { start.plus(DatePeriod(days = it)) }
-
-    private fun random(trackerId: String = "tracker-1") =
-        days.mapNotNull { CameoSchedule.cameo(trackerId, it, Kyiv, isMilestoneDay = false) }
+    private val start = at("2026-10-01T00:00")
+    /** Two weeks of slots. */
+    private fun day(trackerId: String = "tracker-1", milestone: Boolean = false) =
+        (0 until 12 * 24 * 14).map { CameoSchedule.cameo(trackerId, start + CameoSchedule.SLOT * it, milestone) }
 
     @Test
-    fun milestoneDayIsAPeekAllDay() {
-        val cameo = assertNotNull(CameoSchedule.cameo("a", date("2026-10-01"), Kyiv, isMilestoneDay = true))
-        assertEquals(CameoReason.Milestone, cameo.reason)
-        assertEquals(CameoPose.Peek, cameo.pose)
-        assertEquals(at("2026-10-01T00:00"), cameo.from)
-        assertEquals(at("2026-10-02T00:00"), cameo.until)
+    fun slotsAreFiveMinutesOnTheClock() {
+        val cameo = CameoSchedule.cameo("a", at("2026-10-01T12:07"), false)
+        assertEquals(at("2026-10-01T12:05"), cameo.from)
+        assertEquals(at("2026-10-01T12:10"), cameo.until)
+        assertEquals(5.minutes, CameoSchedule.SLOT)
     }
 
     @Test
-    fun sameDayGivesSameAnswer() {
-        val day = date("2026-10-01")
-        assertEquals(CameoSchedule.cameo("a", day, Kyiv, false), CameoSchedule.cameo("a", day, Kyiv, false))
+    fun sameSlotGivesSameAnswer() {
+        assertEquals(CameoSchedule.cameo("a", at("2026-10-01T12:06"), false), CameoSchedule.cameo("a", at("2026-10-01T12:09"), false))
     }
 
     @Test
-    fun randomDaysAreTwoOrThreeAWeek() {
-        val perWeek = random().size * 7.0 / days.size
-        assertTrue(perWeek in 2.0..2.7, "per week was $perWeek")
+    fun theCatMovesMostSlots() {
+        val cameos = day()
+        val repeats = cameos.zipWithNext().count { (a, b) -> a.pose == b.pose }
+        assertTrue(repeats < cameos.size / 20, "repeats: $repeats of ${cameos.size}")
     }
 
     @Test
-    fun randomVisitsLastTwoToFourHoursInMorningAfternoonOrEvening() {
-        random().forEach {
-            assertTrue((it.until - it.from) in 2.hours..4.hours)
-            assertTrue(it.from.toLocalDateTime(Kyiv).hour in setOf(8, 13, 18))
-        }
+    fun everyPoseAndLookShowsUpAndSomeNaps() {
+        val cameos = day()
+        assertEquals(CameoPose.entries.toSet(), cameos.map { it.pose }.toSet())
+        assertEquals(CameoLook.entries.toSet(), cameos.map { it.look }.toSet())
+        val naps = cameos.count { it.eyesClosed }.toDouble() / cameos.size
+        assertTrue(naps in 0.08..0.18, "naps: $naps")
     }
 
     @Test
-    fun everyPoseShowsUp() {
-        val visits = random()
-        assertEquals(CameoPose.entries.toSet(), visits.map { it.pose }.toSet())
-        assertEquals(setOf(8, 13, 18), visits.map { it.from.toLocalDateTime(Kyiv).hour }.toSet())
+    fun milestoneDaysArePawsEveryOtherSlot() {
+        val cameos = day(milestone = true)
+        assertTrue(cameos.all { it.reason == CameoReason.Milestone })
+        assertTrue(cameos.zipWithNext().all { (a, b) -> a.pose == CameoPose.Paws || b.pose == CameoPose.Paws })
     }
 
     @Test
-    fun trackersGetDifferentDays() {
-        assertTrue(random("a").map { it.from } != random("b").map { it.from })
+    fun trackersMoveOutOfStep() {
+        assertTrue(day("a").map { it.pose } != day("b").map { it.pose })
     }
 }

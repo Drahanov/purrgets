@@ -1,5 +1,6 @@
 package com.drahanov.purrgets.domain.engine
 
+import com.drahanov.purrgets.domain.calc.CameoSchedule
 import com.drahanov.purrgets.domain.calc.ProgressCalculator
 import com.drahanov.purrgets.domain.calc.percentOf
 import com.drahanov.purrgets.domain.model.Tracker
@@ -16,8 +17,8 @@ data class TimelinePlan(val moments: List<Instant>, val reloadAt: Instant)
 
 /**
  * Plans frames from now until the second midnight ahead: every midnight (days change),
- * an exact countdown target, every moment a progress percent ticks over, and when a cat
- * arrives or leaves. Plans stay short ([maxEntries]) because WidgetKit renders every entry up front.
+ * an exact countdown target, every moment a progress percent ticks over, and every cat move
+ * (CameoSchedule.SLOT) on Number cards. Plans stay short ([maxEntries]) because WidgetKit renders every entry up front.
  */
 class TimelinePlanner(
     private val engine: TrackerEngine,
@@ -30,8 +31,12 @@ class TimelinePlanner(
         val horizon = today.plus(DatePeriod(days = 2)).atStartOfDayIn(zone)
 
         val candidates = mutableSetOf(now, nextMidnight)
-        for (date in listOf(today, today.plus(DatePeriod(days = 1)))) {
-            engine.cameo(tracker, date, zone)?.let { candidates += listOf(it.from, it.until) }
+        if (tracker.showsCameos) {
+            var slot = CameoSchedule.slotStart(now) + CameoSchedule.SLOT
+            while (slot < horizon) {
+                candidates += slot
+                slot += CameoSchedule.SLOT
+            }
         }
         when (val kind = tracker.kind) {
             is TrackerKind.Countdown -> candidates += kind.target.toInstant(zone)

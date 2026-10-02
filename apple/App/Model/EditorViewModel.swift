@@ -76,6 +76,12 @@ final class EditorViewModel {
         return false
     }
 
+    var deleteNote: String { store.deleteNote(for: trackerID) }
+
+    func refreshWidgetCounts() async {
+        await store.refreshWidgetCounts()
+    }
+
     func delete() async {
         await store.delete(id: trackerID)
     }

@@ -3,7 +3,7 @@ import WidgetKit
 
 @main
 struct PurrgetsApp: App {
-    @State private var store = TrackerStore(container: Purrgets.container) {
+    @State private var store = TrackerStore(container: Purrgets.container, countWidgets: WidgetCounts.current) {
         WidgetCenter.shared.reloadAllTimelines()
     }
 

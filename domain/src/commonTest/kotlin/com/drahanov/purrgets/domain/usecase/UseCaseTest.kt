@@ -5,6 +5,7 @@ import com.drahanov.purrgets.domain.FixedClock
 import com.drahanov.purrgets.domain.Kyiv
 import com.drahanov.purrgets.domain.TimeZoneProvider
 import com.drahanov.purrgets.domain.at
+import com.drahanov.purrgets.domain.calc.CameoSchedule
 import com.drahanov.purrgets.domain.calc.DotLimits
 import com.drahanov.purrgets.domain.date
 import com.drahanov.purrgets.domain.engine.TimelinePlanner
@@ -78,7 +79,10 @@ class UseCaseTest {
         val timeline = assertNotNull(build("a", DotLimits.SMALL))
         val frames = timeline.frames.map { it.at }
         assertEquals(clock.now, frames.first())
-        assertTrue(at("2026-10-02T00:00") in frames)
+        // A Number card: a cat move every 5 minutes, then a reload when the plan runs out.
+        assertEquals(CameoSchedule.slotStart(clock.now) + CameoSchedule.SLOT, frames[1])
+        assertTrue(frames.drop(1).zipWithNext().all { (a, b) -> b - a == CameoSchedule.SLOT })
+        assertTrue(timeline.reloadAt > frames.last())
         assertNull(build("deleted", DotLimits.SMALL))
     }
 

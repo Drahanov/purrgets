@@ -60,7 +60,10 @@ struct EditorView: View {
                     }
                 }
             } message: {
-                Text("Its widgets will ask you to pick another tracker.")
+                Text(model.deleteNote)
+            }
+            .onChange(of: confirmDelete) { _, open in
+                if open { Task { await model.refreshWidgetCounts() } }
             }
         }
         .tint(Palette.ink)

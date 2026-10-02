@@ -156,7 +156,8 @@ private extension WidgetContent.Dots.Shape {
 
 private extension WidgetContent.Cameo {
     init(_ cameo: SharedLogic.Cameo) {
-        let poses: [CameoPose: Pose] = [.peek: .peek, .paws: .paws, .ears: .ears, .tail: .tail, .sleep: .sleep]
-        self.init(pose: poses[cameo.pose] ?? .peek)
+        let poses: [CameoPose: Pose] = [.paws: .paws, .tail: .tail, .hang: .hang, .walk: .walk, .tall: .tall]
+        let looks: [CameoLook: Double] = [.left: -1, .right: 1]
+        self.init(pose: poses[cameo.pose] ?? .paws, look: looks[cameo.look] ?? 0, eyesClosed: cameo.eyesClosed)
     }
 }
