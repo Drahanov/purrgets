@@ -25,6 +25,8 @@ struct HomeView: View {
     @Environment(TrackerStore.self) private var store
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("hideWidgetGuide") private var hideGuide = false
+    /// The pull-the-cat intro has been seen (or skipped). Existing users never get it.
+    @AppStorage("seenIntro") private var seenIntro = false
 
     @State private var editor: EditorRequest?
     @State private var sheet: HomeSheet?
@@ -41,7 +43,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     HomeHeader(count: store.trackers.count) { sheet = .cats }
-                    if store.isLoaded {
+                    if store.isLoaded, !showsIntro {
                         if store.trackers.isEmpty {
                             EmptyShelf(templates: store.templates) { template in
                                 open(EditorDraft(draft: template.draft), from: "template-\(template.id)")
@@ -59,8 +61,16 @@ struct HomeView: View {
             }
             .scrollIndicators(.hidden)
 
-            if !Platform.isMac {
+            if !Platform.isMac, !showsIntro {
                 CreateMenu(isOpen: $menuOpen, zoom: zoom, pick: create)
+            }
+
+            if showsIntro {
+                IntroFlow {
+                    withAnimation(.easeOut(duration: 0.25)) { seenIntro = true }
+                }
+                .transition(.opacity)
+                .zIndex(10)
             }
         }
         .background(Palette.paper.ignoresSafeArea())
@@ -107,6 +117,7 @@ struct HomeView: View {
         }
         .task {
             await store.load()
+            if !store.trackers.isEmpty { seenIntro = true }
             await runLaunchArguments()
         }
         .onOpenURL { url in
@@ -201,6 +212,10 @@ struct HomeView: View {
         nextGuide = nil
     }
 
+    /// The cat intro covers Home until it's done: on first launch (people who already have
+    /// trackers are marked as having seen it), or when replayed from the cat show.
+    private var showsIntro: Bool { store.isLoaded && !seenIntro }
+
     /// For automated screenshots: `--add-samples` fills an empty store, `--edit-first` opens the editor.
     private func runLaunchArguments() async {
         #if DEBUG
@@ -223,6 +238,7 @@ struct HomeView: View {
         }
         if arguments.contains("--guide") { guide = GuideRequest(id: "debug") }
         if arguments.contains("--cats") { sheet = .cats }
+        if arguments.contains("--intro") { seenIntro = false }
         if arguments.contains("--cat-show-off") { CatShow.isOn = false; WidgetCenter.shared.reloadAllTimelines() }
         if arguments.contains("--cat-show-on") { CatShow.isOn = true; WidgetCenter.shared.reloadAllTimelines() }
         if arguments.contains("--reload-widgets") { WidgetCenter.shared.reloadAllTimelines() }

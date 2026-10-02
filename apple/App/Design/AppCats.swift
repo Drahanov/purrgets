@@ -79,7 +79,7 @@ struct SleepingCat: View {
     }
 }
 
-private struct FloatingZs: View {
+struct FloatingZs: View {
     var size: CGFloat
 
     var body: some View {

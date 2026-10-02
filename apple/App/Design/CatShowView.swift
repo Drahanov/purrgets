@@ -7,12 +7,14 @@ import WidgetKit
 struct CatShowView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var inWidgets = CatShow.isOn
+    @AppStorage("seenIntro") private var seenIntro = true
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
                     widgetSwitch
+                    replayIntro
                     section("Cameos, one after another (glancing, napping)") {
                         TimelineView(.periodic(from: .now, by: CatShow.step / 2)) { context in
                             let index = Int(context.date.timeIntervalSinceReferenceDate / (CatShow.step / 2))
@@ -89,6 +91,30 @@ struct CatShowView: View {
             CatShow.isOn = on
             WidgetCenter.shared.reloadAllTimelines()
         }
+    }
+
+    /// Shows the pull-the-cat intro again, over Home.
+    private var replayIntro: some View {
+        Button {
+            seenIntro = false
+            dismiss()
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Replay intro").font(.rounded(17, .black))
+                    Text("The long cat hanging from the top, the one you pull.")
+                        .font(.rounded(13, .bold))
+                        .opacity(0.6)
+                }
+                Spacer()
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 17, weight: .bold))
+            }
+            .padding(16)
+            .background(.white.opacity(0.6), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        }
+        .buttonStyle(SquishStyle(scale: 0.98))
     }
 
     private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {

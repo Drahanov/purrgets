@@ -29,6 +29,8 @@ struct EmptyShelf: View {
     @State private var cat = CatPoseState()
     @State private var busy = false
     @State private var hops = 0
+    /// The cat drops onto the shelf from above when the scene first appears.
+    @State private var catDrop: CGFloat = -360
     @State private var thuds = 0
     /// When the person last did something; the cat only fidgets after a quiet spell.
     @State private var lastTouch = Date.now
@@ -104,6 +106,7 @@ struct EmptyShelf: View {
                     }
                 }
                 .position(x: Layout.catX + Layout.catWidth / 2, y: Layout.shelfY - Layout.catHeight / 2 + 1)
+                .offset(y: catDrop)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     touched()
@@ -211,7 +214,17 @@ struct EmptyShelf: View {
     private func run() async {
         guard items.isEmpty, !templates.isEmpty else { return }
         for _ in 0..<5 { addToShelf() }
-        await nap(0.9)
+        // In he drops, lands with a squash, and has a look round.
+        if reduceMotion {
+            catDrop = 0
+        } else {
+            await nap(0.25)
+            withAnimation(.easeIn(duration: 0.32)) { catDrop = 0 }
+            await nap(0.32)
+            hops += 1
+            await nap(0.5)
+        }
+        await nap(0.5)
         await knock(impatient: false)
         // Fidgets while nobody's touching anything: blinks, glances, and a paw at the next card.
         while !Task.isCancelled {
