@@ -69,6 +69,22 @@ enum Platform {
         #endif
     }
 
+    static func copy(_ text: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        #else
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
+    }
+
+    /// Brings the app to the front (the Mac can open windows from the menu bar or Settings).
+    static func activate() {
+        #if os(macOS)
+        NSApp.activate()
+        #endif
+    }
+
     /// The system page where the user can turn calendar access back on.
     static func openCalendarSettings() {
         #if os(iOS)

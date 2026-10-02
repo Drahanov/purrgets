@@ -40,12 +40,14 @@ enum CreateOption: String, CaseIterable, Identifiable {
 }
 
 /// The floating + button. It turns into × and the options spring up above it, one by one.
+/// Settings sits last, just above the button, set apart from the create options.
 struct CreateMenu: View {
     static let sourceID = "create"
 
     @Binding var isOpen: Bool
     var zoom: Namespace.ID
     var pick: (CreateOption) -> Void
+    var openSettings: () -> Void
 
     /// One tap per option as it springs up.
     @State private var rowsIn = 0
@@ -69,11 +71,19 @@ struct CreateMenu: View {
                                 .asymmetric(
                                     insertion: .scale(scale: 0.4, anchor: .bottomTrailing)
                                         .combined(with: .opacity)
-                                        .animation(Motion.bouncy.delay(Motion.stagger(CreateOption.allCases.count - 1 - index, step: 0.05))),
+                                        .animation(Motion.bouncy.delay(Motion.stagger(CreateOption.allCases.count - index, step: 0.05))),
                                     removal: .scale(scale: 0.6, anchor: .bottomTrailing).combined(with: .opacity)
                                 )
                             )
                     }
+                    settingsRow
+                        .padding(.top, 6)
+                        .transition(
+                            .asymmetric(
+                                insertion: .scale(scale: 0.4, anchor: .bottomTrailing).combined(with: .opacity).animation(Motion.bouncy),
+                                removal: .scale(scale: 0.6, anchor: .bottomTrailing).combined(with: .opacity)
+                            )
+                        )
                 }
                 plusButton
             }
@@ -86,7 +96,7 @@ struct CreateMenu: View {
             guard isOpen else { return }
             // In step with the rows' staggered entrance, after the + button's own tap.
             try? await Task.sleep(for: .seconds(0.06))
-            for _ in CreateOption.allCases {
+            for _ in 0...CreateOption.allCases.count {
                 guard !Task.isCancelled else { return }
                 rowsIn += 1
                 try? await Task.sleep(for: .seconds(0.05))
@@ -129,6 +139,27 @@ struct CreateMenu: View {
             .shadow(color: Palette.ink.opacity(0.12), radius: 10, y: 4)
         }
         .buttonStyle(SquishStyle())
+    }
+
+    /// Quieter than the create rows: no subtitle, a smaller ink-outlined pill.
+    private var settingsRow: some View {
+        Button(action: openSettings) {
+            HStack(spacing: 10) {
+                Text("Settings").font(.rounded(15, .heavy))
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .frame(width: 36, height: 36)
+                    .background(Palette.ink.opacity(0.08), in: Circle())
+            }
+            .foregroundStyle(Palette.ink)
+            .padding(.leading, 16)
+            .padding(.trailing, 6)
+            .padding(.vertical, 6)
+            .background(Palette.paper, in: Capsule())
+            .shadow(color: Palette.ink.opacity(0.12), radius: 10, y: 4)
+        }
+        .buttonStyle(SquishStyle())
+        .padding(.trailing, 2)
     }
 
     private func iconColor(_ option: CreateOption) -> Color {

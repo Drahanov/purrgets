@@ -20,6 +20,12 @@ struct PurrgetsApp: App {
                 .preferredColorScheme(.light)
         }
         .menuBarExtraStyle(.window)
+
+        Settings {
+            SettingsView()
+                .environment(store)
+                .preferredColorScheme(.light)
+        }
         #else
         WindowGroup {
             root

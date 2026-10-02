@@ -11,7 +11,7 @@ struct EditorRequest: Identifiable {
 }
 
 enum HomeSheet: String, Identifiable {
-    case library, calendar, cats
+    case library, calendar, cats, settings
     var id: Self { self }
 }
 
@@ -62,7 +62,10 @@ struct HomeView: View {
             .scrollIndicators(.hidden)
 
             if !Platform.isMac, !showsIntro {
-                CreateMenu(isOpen: $menuOpen, zoom: zoom, pick: create)
+                CreateMenu(isOpen: $menuOpen, zoom: zoom, pick: create) {
+                    menuOpen = false
+                    sheet = .settings
+                }
             }
 
             if showsIntro {
@@ -99,6 +102,7 @@ struct HomeView: View {
             case .library: LibraryView(pick: pickFromSheet)
             case .calendar: CalendarImportView(pick: pickFromSheet)
             case .cats: CatShowView()
+            case .settings: SettingsView()
             }
         }
         .sheet(item: $guide) { _ in
@@ -245,6 +249,8 @@ struct HomeView: View {
         }
         if arguments.contains("--guide") { guide = GuideRequest(id: "debug") }
         if arguments.contains("--cats") { sheet = .cats }
+        if arguments.contains("--settings") { sheet = .settings }
+        if arguments.contains("--menu") { menuOpen = true }
         if arguments.contains("--intro") { seenIntro = false }
         if arguments.contains("--cat-show-off") { CatShow.isOn = false; WidgetCenter.shared.reloadAllTimelines() }
         if arguments.contains("--cat-show-on") { CatShow.isOn = true; WidgetCenter.shared.reloadAllTimelines() }
