@@ -7,7 +7,8 @@ struct TrackerEntity: AppEntity {
     let id: String
     let title: String
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Tracker"
+    /// Edit Widget shows the type's name while nothing is picked, so it reads "Tracker  Choose".
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Choose"
     static var defaultQuery = TrackerQuery()
 
     var displayRepresentation: DisplayRepresentation { DisplayRepresentation(title: "\(title)") }
