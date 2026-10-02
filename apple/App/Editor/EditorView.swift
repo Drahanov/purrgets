@@ -73,6 +73,11 @@ struct EditorView: View {
             .onChange(of: confirmDelete) { _, open in
                 if open { Task { await model.refreshWidgetCounts() } }
             }
+            .alert("Couldn't save", isPresented: $model.saveFailed) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Your changes are still here. Please try again.")
+            }
         }
         .tint(Palette.ink)
         .sensoryFeedback(.error, trigger: model.shakes)

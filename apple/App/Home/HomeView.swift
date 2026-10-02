@@ -114,6 +114,11 @@ struct HomeView: View {
         } message: { tracker in
             Text(store.deleteNote(for: tracker.id))
         }
+        .alert(
+            store.failure ?? "", isPresented: .init(get: { store.failure != nil }, set: { if !$0 { store.failure = nil } })
+        ) {
+            Button("OK", role: .cancel) {}
+        }
         .onChange(of: deleting?.id) { _, id in
             if id != nil { Task { await store.refreshWidgetCounts() } }
         }

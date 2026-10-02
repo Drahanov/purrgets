@@ -13,9 +13,9 @@ final class TrackerStoreTests: XCTestCase {
 
         var draft = EditorDraft(kind: .countdown)
         draft.title = "Holiday"
-        let errors = await store.save(id: "a", draft: draft)
+        let outcome = await store.save(id: "a", draft: draft)
 
-        XCTAssertTrue(errors.isEmpty)
+        XCTAssertEqual(outcome, .saved)
         XCTAssertEqual(store.trackers.map(\.title), ["Holiday"])
         XCTAssertEqual(reloads, 1)
     }
@@ -23,8 +23,8 @@ final class TrackerStoreTests: XCTestCase {
     func testInvalidSaveChangesNothing() async {
         var reloads = 0
         let store = TestEnvironment.makeStore { reloads += 1 }
-        let errors = await store.save(id: "a", draft: EditorDraft(kind: .countdown))
-        XCTAssertEqual(errors, [.emptytitle])
+        let outcome = await store.save(id: "a", draft: EditorDraft(kind: .countdown))
+        XCTAssertEqual(outcome, .invalid([.emptytitle]))
         XCTAssertTrue(store.trackers.isEmpty)
         XCTAssertEqual(reloads, 0)
     }
@@ -96,6 +96,22 @@ final class EditorViewModelTests: XCTestCase {
         let saved = await model.save()
         XCTAssertFalse(saved)
         XCTAssertTrue(model.rangeInvalid)
+    }
+
+    func testStorageFailureKeepsTheEditorOpen() async {
+        // A plain file where the storage folder should be: every write fails.
+        let blocker = FileManager.default.temporaryDirectory.appendingPathComponent("purrgets-blocked-\(UUID().uuidString)")
+        FileManager.default.createFile(atPath: blocker.path, contents: Data())
+        let store = TestEnvironment.makeStore(folder: blocker.appendingPathComponent("store"))
+        var draft = EditorDraft(kind: .countdown)
+        draft.title = "Concert"
+        let model = EditorViewModel(store: store, draft: draft)
+
+        let saved = await model.save()
+        XCTAssertFalse(saved)
+        XCTAssertTrue(model.saveFailed)
+        XCTAssertEqual(model.phase, .editing)
+        XCTAssertEqual(model.shakes, 0, "Not the user's mistake, so no shake")
     }
 
     func testEditingKeepsTheIdAndUpdatesInPlace() async {

@@ -12,11 +12,16 @@ import com.drahanov.purrgets.domain.model.TrackerKind
 import com.drahanov.purrgets.domain.repository.TrackerRepository
 import kotlin.time.Clock
 
+// @Throws on everything that touches storage: without it Kotlin/Native turns an I/O error
+// into a crash instead of a Swift error.
+
 class ListTrackers(private val repository: TrackerRepository) {
+    @Throws(Exception::class)
     suspend operator fun invoke(): List<Tracker> = repository.all().sortedBy { it.createdAt }
 }
 
 class DeleteTracker(private val repository: TrackerRepository) {
+    @Throws(Exception::class)
     suspend operator fun invoke(id: TrackerId) = repository.delete(id)
 }
 
@@ -33,6 +38,7 @@ class SaveTracker(
     private val clock: Clock,
     private val zones: TimeZoneProvider,
 ) {
+    @Throws(Exception::class)
     suspend operator fun invoke(
         id: TrackerId,
         title: String,
@@ -55,6 +61,7 @@ class SaveTracker(
         return SaveResult.Saved(tracker)
     }
 
+    @Throws(Exception::class)
     suspend operator fun invoke(id: TrackerId, draft: TrackerDraft): SaveResult =
         invoke(id, draft.title, draft.kind, draft.appearance)
 

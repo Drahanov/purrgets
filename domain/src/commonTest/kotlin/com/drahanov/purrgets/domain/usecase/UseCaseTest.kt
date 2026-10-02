@@ -76,14 +76,25 @@ class UseCaseTest {
     fun widgetTimelineHasAFramePerPlannedMoment() = runTest {
         save("a", "Trip", trip)
         val build = BuildWidgetTimeline(repository, TimelinePlanner(TrackerEngine()), TrackerEngine(), clock, zones)
-        val timeline = assertNotNull(build("a", DotLimits.SMALL))
+        val timeline = assertNotNull(build("a", DotLimits.SMALL, cameos = true))
         val frames = timeline.frames.map { it.at }
         assertEquals(clock.now, frames.first())
         // A Number card: a cat move every 5 minutes, then a reload when the plan runs out.
         assertEquals(CameoSchedule.slotStart(clock.now) + CameoSchedule.SLOT, frames[1])
         assertTrue(frames.drop(1).zipWithNext().all { (a, b) -> b - a == CameoSchedule.SLOT })
         assertTrue(timeline.reloadAt > frames.last())
-        assertNull(build("deleted", DotLimits.SMALL))
+        assertNull(build("deleted", DotLimits.SMALL, cameos = true))
+    }
+
+    @Test
+    fun widgetsWithoutCatsGetNoCatFrames() = runTest {
+        save("a", "Trip", trip)
+        val build = BuildWidgetTimeline(repository, TimelinePlanner(TrackerEngine()), TrackerEngine(), clock, zones)
+        val timeline = assertNotNull(build("a", DotLimits.SMALL, cameos = false))
+        // Just now and midnight: no cat moves every 5 minutes.
+        assertEquals(listOf(clock.now, at("2026-10-02T00:00")), timeline.frames.map { it.at })
+        assertTrue(timeline.frames.all { it.cameo == null })
+        assertEquals(at("2026-10-03T00:00"), timeline.reloadAt)
     }
 
     @Test

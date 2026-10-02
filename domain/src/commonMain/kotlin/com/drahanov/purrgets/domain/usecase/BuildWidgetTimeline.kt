@@ -11,7 +11,11 @@ import kotlin.time.Instant
 
 data class WidgetTimeline(val frames: List<TrackerState>, val reloadAt: Instant)
 
-/** What the widget asks for: frames for one tracker. Null if the tracker was deleted. */
+/**
+ * What the widget asks for: frames for one tracker. Null if the tracker was deleted.
+ * [cameos] is false for widget sizes that never draw a cat (Lock Screen), so they get no
+ * 5-minute cat frames and reload far less often.
+ */
 class BuildWidgetTimeline(
     private val repository: TrackerRepository,
     private val planner: TimelinePlanner,
@@ -19,8 +23,10 @@ class BuildWidgetTimeline(
     private val clock: Clock,
     private val zones: TimeZoneProvider,
 ) {
-    suspend operator fun invoke(id: TrackerId, maxDots: Int): WidgetTimeline? {
-        val tracker = repository.get(id) ?: return null
+    @Throws(Exception::class)
+    suspend operator fun invoke(id: TrackerId, maxDots: Int, cameos: Boolean): WidgetTimeline? {
+        val saved = repository.get(id) ?: return null
+        val tracker = if (cameos) saved else saved.copy(appearance = saved.appearance.copy(cameos = false))
         val zone = zones.current()
         val plan = planner.plan(tracker, clock.now(), zone)
         return WidgetTimeline(

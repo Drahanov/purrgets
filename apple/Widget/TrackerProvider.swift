@@ -44,7 +44,11 @@ struct TrackerProvider: AppIntentTimelineProvider {
         // No fallback tracker: widgets can't be told apart, so every unpicked widget would show
         // the same one and change along with it. They ask the user to pick instead.
         guard let id = configuration.tracker?.id,
-              let timeline = try? await Purrgets.container.buildWidgetTimeline.invoke(id: id, maxDots: context.family.cardSize.maxDots)
+              let timeline = try? await Purrgets.container.buildWidgetTimeline.invoke(
+                  id: id, maxDots: context.family.cardSize.maxDots,
+                  // Lock Screen sizes never draw a cat, so they skip the 5-minute cat frames.
+                  cameos: !context.family.cardSize.isAccessory
+              )
         else {
             let hasTrackers = !((try? await Purrgets.container.listTrackers.invoke()) ?? []).isEmpty
             CatLog.widget.info("timeline \(configuration.tracker?.id ?? "none", privacy: .public) family=\(String(describing: context.family), privacy: .public): no tracker, asks to pick (hasTrackers=\(hasTrackers))")

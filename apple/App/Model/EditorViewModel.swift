@@ -22,6 +22,8 @@ final class EditorViewModel {
     private(set) var rangeInvalid = false
     /// Bumped on every failed save, so the title field shakes each time.
     private(set) var shakes = 0
+    /// Storage failed: the editor stays open with the draft and shows an alert.
+    var saveFailed = false
 
     let trackerID: String
     let isNew: Bool
@@ -64,14 +66,19 @@ final class EditorViewModel {
     func save() async -> Bool {
         guard phase == .editing else { return false }
         phase = .saving
-        let errors = await store.save(id: trackerID, draft: draft)
-        titleMissing = errors.contains(.emptytitle)
-        rangeInvalid = errors.contains(.rangeendsbeforestart)
-        if errors.isEmpty {
+        switch await store.save(id: trackerID, draft: draft) {
+        case .saved:
+            titleMissing = false
+            rangeInvalid = false
             phase = .saved
             return true
+        case .invalid(let errors):
+            titleMissing = errors.contains(.emptytitle)
+            rangeInvalid = errors.contains(.rangeendsbeforestart)
+            shakes += 1
+        case .failed:
+            saveFailed = true
         }
-        shakes += 1
         phase = .editing
         return false
     }

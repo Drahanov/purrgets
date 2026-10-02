@@ -30,6 +30,7 @@ class LoadCalendarEvents(
     private val source: CalendarSource,
     private val clock: Clock,
 ) {
+    @Throws(Exception::class)
     suspend operator fun invoke(): CalendarResult {
         if (!source.requestAccess()) return CalendarResult.NoAccess
         val now = clock.now()

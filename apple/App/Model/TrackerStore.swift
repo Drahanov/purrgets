@@ -48,22 +48,31 @@ final class TrackerStore {
 
     func tracker(id: String) -> Tracker? { trackers.first { $0.id == id } }
 
-    /// Saves a new or edited tracker. Returns the validation errors, empty when saved.
+    /// Saves a new or edited tracker.
     @discardableResult
-    func save(id: String, draft: EditorDraft) async -> [ValidationError] {
+    func save(id: String, draft: EditorDraft) async -> SaveOutcome {
         let result: SaveResult
         do {
             result = try await container.saveTracker.invoke(id: id, title: draft.title, kind: draft.kotlinKind, appearance: draft.appearance)
         } catch {
-            return []
+            CatLog.app.error("save \(id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+            return .failed
         }
-        if let invalid = result as? SaveResultInvalid { return invalid.errors }
+        if let invalid = result as? SaveResultInvalid { return .invalid(invalid.errors) }
         await changed()
-        return []
+        return .saved
     }
 
+    /// Set when a delete or duplicate from Home fails, for an alert there.
+    var failure: String?
+
     func delete(id: String) async {
-        try? await container.deleteTracker.invoke(id: id)
+        do {
+            try await container.deleteTracker.invoke(id: id)
+        } catch {
+            CatLog.app.error("delete \(id, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+            failure = "Couldn't delete the tracker. Please try again."
+        }
         await changed()
     }
 
@@ -71,7 +80,9 @@ final class TrackerStore {
     func duplicate(_ tracker: Tracker) async {
         var draft = EditorDraft(tracker: tracker)
         draft.title = "\(tracker.title) copy"
-        await save(id: TrackerKt.randomTrackerId(), draft: draft)
+        if await save(id: TrackerKt.randomTrackerId(), draft: draft) == .failed {
+            failure = "Couldn't duplicate the tracker. Please try again."
+        }
     }
 
     /// What the tracker shows right now, for a card of [size].
@@ -99,6 +110,13 @@ final class TrackerStore {
         trackers = (try? await container.listTrackers.invoke()) ?? trackers
         reloadWidgets()
     }
+}
+
+enum SaveOutcome: Equatable {
+    case saved
+    case invalid([ValidationError])
+    /// Storage failed; nothing was saved.
+    case failed
 }
 
 enum CalendarEventsResult {
