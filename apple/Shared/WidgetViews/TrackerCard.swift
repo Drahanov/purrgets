@@ -16,16 +16,45 @@ struct TrackerCard: View {
             AccessoryCard(content: content, size: size)
         } else {
             ZStack {
-                styled
-                    .padding(16)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                padded(styled)
                 // The spec: cats peek into Number cards.
                 if let cameo = content.cameo, case .number = content.style {
                     CameoView(cameo: cameo)
+                    textOverCat(cameo)
+                        .allowsHitTesting(false)
                 }
             }
             .foregroundStyle(Palette.ink)
         }
+    }
+
+    /// Keeps text readable where the cat covers it. Over the big head the text is cut out of the cat
+    /// in the card colour; thin legs and tails would chop cut-out letters up, so there the text stays
+    /// on top with a card-coloured outline and the cat passes behind it.
+    @ViewBuilder private func textOverCat(_ cameo: WidgetContent.Cameo) -> some View {
+        let background = content.theme.background
+        if cameo.pose.textOverCat == .cutout {
+            padded(styled)
+                .foregroundStyle(background)
+                .mask { CameoView(cameo: cameo).environment(\.pokeTrackerID, nil) }
+        } else {
+            padded(ZStack(alignment: .topLeading) {
+                // Card-coloured copies around the text make the outline; over the card itself they don't show.
+                ForEach(0..<8, id: \.self) { step in
+                    let angle = Double(step) * .pi / 4
+                    styled
+                        .foregroundStyle(background)
+                        .offset(x: 1.5 * cos(angle), y: 1.5 * sin(angle))
+                }
+                styled
+            })
+        }
+    }
+
+    private func padded(_ view: some View) -> some View {
+        view
+            .padding(16)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     @ViewBuilder private var styled: some View {
@@ -58,6 +87,33 @@ struct TrackerCardPreview: View {
                 .frame(width: frame.width, height: frame.height)
                 .background(content.theme.background)
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .paperEdge(content.theme, cornerRadius: 22)
+        }
+    }
+}
+
+/// How text stays readable where a cameo covers it; see `TrackerCard.textOverCat`.
+enum TextOverCat {
+    case cutout, outline
+}
+
+extension WidgetContent.Cameo.Pose {
+    var textOverCat: TextOverCat {
+        switch self {
+        case .paws: .cutout
+        case .tail, .hang, .walk, .tall: .outline
+        }
+    }
+}
+
+extension View {
+    /// Paper cards are the app's own background colour, so in the app they need an edge to stand out.
+    func paperEdge(_ theme: CardTheme, cornerRadius: CGFloat) -> some View {
+        overlay {
+            if theme == .paper {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(Palette.ink.opacity(0.14), lineWidth: 1.5)
+            }
         }
     }
 }

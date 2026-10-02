@@ -35,6 +35,7 @@ struct LiveCard: View {
             TrackerCard(content: content.revealed(reveal), size: size)
                 .background(content.theme.background)
                 .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .paperEdge(content.theme, cornerRadius: cornerRadius)
                 .contextMenuShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
     }

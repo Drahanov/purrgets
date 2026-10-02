@@ -53,6 +53,7 @@ struct MenuBarView: View {
                 .frame(width: 22, height: 22)
                 .padding(5)
                 .background(content.theme.background, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .paperEdge(content.theme, cornerRadius: 8)
             Text(content.title).font(.rounded(14, .heavy)).lineLimit(1)
             Spacer(minLength: 8)
             Text(content.unit == "%" ? "\(content.value)%" : "\(content.value) \(content.unit)")
