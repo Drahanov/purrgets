@@ -43,7 +43,7 @@ struct HomeView: View {
                     HomeHeader(count: store.trackers.count) { sheet = .cats }
                     if store.isLoaded {
                         if store.trackers.isEmpty {
-                            EmptyHome(templates: store.templates) { template in
+                            EmptyShelf(templates: store.templates) { template in
                                 open(EditorDraft(draft: template.draft), from: "template-\(template.id)")
                             }
                         } else {
@@ -256,43 +256,3 @@ private struct HomeHeader: View {
     }
 }
 
-// MARK: - Empty state
-
-/// First launch: a sleeping cat and the templates to start from.
-private struct EmptyHome: View {
-    var templates: [Template]
-    var pick: (Template) -> Void
-    @Environment(TrackerStore.self) private var store
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(spacing: 10) {
-                SleepingCat(size: 130)
-                Text("Nothing to count yet")
-                    .font(.rounded(22, .black))
-                Text("Start with one of these, or tap + to make your own.")
-                    .font(.rounded(15, .bold))
-                    .foregroundStyle(Palette.ink.opacity(0.6))
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
-            .arrive()
-
-            CardGrid {
-                ForEach(Array(templates.enumerated()), id: \.element.id) { index, template in
-                    let draft = EditorDraft(draft: template.draft)
-                    let small = store.content(for: draft, id: template.id, size: .small)
-                    let size = small.homeSize
-                    Button { pick(template) } label: {
-                        LiveCard(content: size == .small ? small : store.content(for: draft, id: template.id, size: size), size: size, index: index)
-                    }
-                    .buttonStyle(SquishStyle(scale: 0.96))
-                    .cardSpan(size)
-                    .arrive(index + 1)
-                }
-            }
-        }
-        .foregroundStyle(Palette.ink)
-    }
-}
