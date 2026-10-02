@@ -23,6 +23,7 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemTemporaryDirectory
 import kotlinx.io.readString
 import kotlinx.io.writeString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -125,6 +126,20 @@ class JsonTrackerRepositoryTest {
         val text = readRaw().replaceFirst("\"trackers\": [", "\"trackers\": [ { \"id\": \"x\", \"kind\": { \"type\": \"rocket\" } },")
         writeRaw(text)
         assertEquals(listOf(all[0]), repository.all())
+    }
+
+    @Test
+    fun badTrackerSurvivesASave() = runTest {
+        repository.save(all[0])
+        val bad = buildJsonObject { put("id", JsonPrimitive("x")); put("kind", buildJsonObject { put("type", JsonPrimitive("rocket")) }) }
+        writeRaw(readRaw().replaceFirst("\"trackers\": [", "\"trackers\": [ $bad,"))
+
+        repository.save(all[1])
+        repository.delete(all[0].id)
+
+        assertEquals(listOf(all[1]), repository.all())
+        val entries = Json.parseToJsonElement(readRaw()).jsonObject["trackers"]!!.jsonArray
+        assertTrue(bad in entries)
     }
 
     @Test

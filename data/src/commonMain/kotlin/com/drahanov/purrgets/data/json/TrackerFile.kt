@@ -1,9 +1,9 @@
 package com.drahanov.purrgets.data.json
 
 import com.drahanov.purrgets.domain.model.Tracker
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
@@ -15,12 +15,17 @@ import kotlinx.serialization.json.put
 /** Upgrades the raw file from version [from] to [from] + 1. */
 class Migration(val from: Int, val migrate: (JsonObject) -> JsonObject)
 
-internal class ReadResult(val trackers: List<Tracker>, val isBroken: Boolean)
+/** [unreadable]: entries kept as they are, so saving never drops them (a newer app may read them). */
+internal class ReadResult(
+    val trackers: List<Tracker>,
+    val isBroken: Boolean,
+    val unreadable: List<JsonElement> = emptyList(),
+)
 
 /**
  * trackers.json: `{ "schemaVersion": 1, "trackers": [ … ] }`.
  * Old versions are migrated on read. A tracker that can't be read is skipped, so one bad
- * entry never hides the others.
+ * entry never hides the others, and written back untouched on the next save.
  */
 internal class TrackerFile(
     private val migrations: List<Migration>,
@@ -39,17 +44,21 @@ internal class TrackerFile(
         val migrated = migrate(root)
         val entries = runCatching { (migrated[TRACKERS] ?: JsonArray(emptyList())).jsonArray }.getOrNull()
             ?: return ReadResult(emptyList(), isBroken = true)
-        val trackers = entries.mapNotNull { entry ->
-            runCatching { TrackerMapper.toDomain(json.decodeFromJsonElement(TrackerDto.serializer(), entry)) }.getOrNull()
+        val trackers = mutableListOf<Tracker>()
+        val unreadable = mutableListOf<JsonElement>()
+        for (entry in entries) {
+            runCatching { TrackerMapper.toDomain(json.decodeFromJsonElement(TrackerDto.serializer(), entry)) }
+                .onSuccess { trackers += it }
+                .onFailure { unreadable += entry }
         }
-        return ReadResult(trackers, isBroken = false)
+        return ReadResult(trackers, isBroken = false, unreadable)
     }
 
-    fun encode(trackers: List<Tracker>): String = json.encodeToString(
+    fun encode(trackers: List<Tracker>, unreadable: List<JsonElement> = emptyList()): String = json.encodeToString(
         JsonObject.serializer(),
         buildJsonObject {
             put(SCHEMA_VERSION, currentVersion)
-            put(TRACKERS, json.encodeToJsonElement(ListSerializer(TrackerDto.serializer()), trackers.map(TrackerMapper::toDto)))
+            put(TRACKERS, JsonArray(trackers.map { json.encodeToJsonElement(TrackerDto.serializer(), TrackerMapper.toDto(it)) } + unreadable))
         },
     )
 

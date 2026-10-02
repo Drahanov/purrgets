@@ -18,6 +18,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readString
 import kotlinx.io.writeString
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Stores all trackers in one JSON file in [directory] (the App Group folder on Apple platforms).
@@ -25,7 +26,8 @@ import kotlinx.io.writeString
  * - Writes go to a temp file that is then renamed, so readers (the widget) see either the
  *   old file or the new one, never half of it.
  * - Reading never changes the file. A broken file is only moved aside to
- *   trackers.broken.json by the next save, so the user's data isn't lost silently.
+ *   trackers.broken.json by the next save, and a single unreadable tracker is written back
+ *   as it was, so the user's data isn't lost silently.
  */
 class JsonTrackerRepository internal constructor(
     directory: String,
@@ -65,7 +67,7 @@ class JsonTrackerRepository internal constructor(
         withContext(io) {
             val current = read()
             if (current.isBroken) fileSystem.atomicMove(file, broken)
-            write(change(current.trackers))
+            write(change(current.trackers), current.unreadable)
         }
     }
 
@@ -75,9 +77,9 @@ class JsonTrackerRepository internal constructor(
         return format.decode(text)
     }
 
-    private fun write(trackers: List<Tracker>) {
+    private fun write(trackers: List<Tracker>, unreadable: List<JsonElement>) {
         fileSystem.createDirectories(folder)
-        fileSystem.sink(temp).buffered().use { it.writeString(format.encode(trackers)) }
+        fileSystem.sink(temp).buffered().use { it.writeString(format.encode(trackers, unreadable)) }
         fileSystem.atomicMove(temp, file)
     }
 
