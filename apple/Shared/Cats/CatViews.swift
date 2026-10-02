@@ -97,10 +97,10 @@ struct CameoView: View {
         }
     }
 
-    /// The cat art with this visit's gaze and nap. [flipped] art is drawn mirrored or upside down,
+    /// The cat art with this visit's gaze. [flipped] art is drawn mirrored or upside down,
     /// so its gaze is turned around to still point the right way on screen.
     private func art(_ pose: CatPose, warp: CatWarp = CatWarp(), anchor: UnitPoint = .bottom, flipped: Bool = false) -> CatArt {
-        CatArt(pose: pose, warp: warp, eyesClosed: cameo.eyesClosed, look: (flipped ? -1 : 1) * cameo.look, anchor: anchor)
+        CatArt(pose: pose, warp: warp, look: (flipped ? -1 : 1) * cameo.look, anchor: anchor)
     }
 
     private func fitted(_ pose: CatPose, width: CGFloat, hidden: Set<CatLayer> = []) -> CGSize {

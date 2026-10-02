@@ -15,7 +15,7 @@ struct CatShowView: View {
                 VStack(alignment: .leading, spacing: 26) {
                     widgetSwitch
                     replayIntro
-                    section("Cameos, one after another (glancing, napping)") {
+                    section("Cameos, one after another (glancing)") {
                         TimelineView(.periodic(from: .now, by: CatShow.step / 2)) { context in
                             let index = Int(context.date.timeIntervalSinceReferenceDate / (CatShow.step / 2))
                             CardGrid {
@@ -80,7 +80,7 @@ struct CatShowView: View {
         Toggle(isOn: $inWidgets) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Play in my widgets").font(.rounded(17, .black))
-                Text("Every widget shows its tracker as a number and cycles through all cameos, glances and naps, \(Int(CatShow.step)) s each.")
+                Text("Every widget shows its tracker as a number and cycles through all cameos and glances, \(Int(CatShow.step)) s each.")
                     .font(.rounded(13, .bold))
                     .opacity(0.6)
             }

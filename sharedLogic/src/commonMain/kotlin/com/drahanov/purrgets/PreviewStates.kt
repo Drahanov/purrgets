@@ -72,7 +72,7 @@ object PreviewStates {
         val cameos = CameoPose.entries.map { pose ->
             PreviewState(
                 "cameo-${pose.name.lowercase()}",
-                base.copy(cameo = Cameo(pose, CameoLook.Ahead, false, CameoReason.Random, now, now + CameoSchedule.SLOT)),
+                base.copy(cameo = Cameo(pose, CameoLook.Ahead, CameoReason.Random, now, now + CameoSchedule.SLOT)),
             )
         }
         return plain + cameos

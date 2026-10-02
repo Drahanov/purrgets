@@ -34,9 +34,8 @@ enum CatShow {
         }
     }
 
-    /// Frame [index] of the show: every pose in turn, glancing left, ahead and right,
-    /// and every fourth one napping.
+    /// Frame [index] of the show: every pose in turn, glancing left, ahead and right.
     static func cameo(_ index: Int) -> WidgetContent.Cameo {
-        .init(pose: poses[index % poses.count], look: Double(index % 3 - 1), eyesClosed: index % 4 == 3)
+        .init(pose: poses[index % poses.count], look: Double(index % 3 - 1))
     }
 }

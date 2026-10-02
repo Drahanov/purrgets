@@ -81,8 +81,7 @@ private struct CameoReel: View {
         let tick = Int(date.timeIntervalSinceReferenceDate / Self.step)
         return .init(
             pose: Self.poses[tick % Self.poses.count],
-            look: [0, -1, 1][tick % 3],
-            eyesClosed: tick % 7 == 3
+            look: [0, -1, 1][tick % 3]
         )
     }
 }

@@ -27,8 +27,6 @@ struct WidgetContent: Equatable {
         var pose: Pose
         /// Where it looks on screen: -1 left, 0 ahead, 1 right.
         var look: Double = 0
-        /// Napping.
-        var eyesClosed = false
     }
 
     var title: String

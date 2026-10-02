@@ -33,12 +33,10 @@ class CameoTest {
     }
 
     @Test
-    fun everyPoseAndLookShowsUpAndSomeNaps() {
+    fun everyPoseAndLookShowsUp() {
         val cameos = day()
         assertEquals(CameoPose.entries.toSet(), cameos.map { it.pose }.toSet())
         assertEquals(CameoLook.entries.toSet(), cameos.map { it.look }.toSet())
-        val naps = cameos.count { it.eyesClosed }.toDouble() / cameos.size
-        assertTrue(naps in 0.08..0.18, "naps: $naps")
     }
 
     @Test

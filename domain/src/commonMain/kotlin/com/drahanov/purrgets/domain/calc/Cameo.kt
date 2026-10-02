@@ -27,8 +27,6 @@ enum class CameoReason { Milestone, Random }
 data class Cameo(
     val pose: CameoPose,
     val look: CameoLook,
-    /** Napping, eyes shut. */
-    val eyesClosed: Boolean,
     val reason: CameoReason,
     val from: Instant,
     val until: Instant,
@@ -37,16 +35,13 @@ data class Cameo(
 }
 
 /**
- * A cat is always around and moves every [SLOT]: a new pose, a new glance, now and then a nap.
+ * A cat is always around and moves every [SLOT]: a new pose and a new glance.
  * [SLOT] is as often as Apple lets widget frames change ("at least about 5 minutes apart").
  * On milestone days every other slot is Paws. Seeded by tracker and slot, so a reload never
  * changes it and two widgets don't move in step.
  */
 object CameoSchedule {
     val SLOT = 5.minutes
-
-    /** One slot in [NAP_ODDS] is a nap. */
-    const val NAP_ODDS = 8
 
     /** The start of the slot [at] falls in. Slots line up with the clock: :00, :05, :10… */
     fun slotStart(at: Instant): Instant {
@@ -63,7 +58,6 @@ object CameoSchedule {
         return Cameo(
             pose = pose,
             look = CameoLook.entries[seed.next(CameoLook.entries.size)],
-            eyesClosed = seed.next(NAP_ODDS) == 0,
             reason = if (isMilestoneDay) CameoReason.Milestone else CameoReason.Random,
             from = from,
             until = from + SLOT,

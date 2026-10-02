@@ -17,11 +17,11 @@ struct TrackerEntry: TimelineEntry {
         if case .tracker(let content) = content { content.cameo?.pose } else { nil }
     }
 
-    /// One line for the logs: time, pose, gaze, nap.
+    /// One line for the logs: time, pose, gaze.
     var summary: String {
         let time = date.formatted(date: .omitted, time: .standard)
         guard case .tracker(let content) = content, let cameo = content.cameo else { return "  \(time) no cat" }
-        return "  \(time) \(cameo.pose) look=\(cameo.look)\(cameo.eyesClosed ? " nap" : "")"
+        return "  \(time) \(cameo.pose) look=\(cameo.look)"
     }
 }
 
