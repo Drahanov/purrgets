@@ -89,7 +89,9 @@ targets:
         PurrgetsAppGroup: $(PURRGETS_APP_GROUP)
         NSCalendarsFullAccessUsageDescription: Purrgets reads your calendar so you can turn an event into a countdown.
         ITSAppUsesNonExemptEncryption: false
-        UILaunchScreen: {}
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchLogo
     dependencies:
       - target: PurrgetsWidgetiOS
 
