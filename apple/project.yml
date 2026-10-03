@@ -125,6 +125,7 @@ targets:
         PurrgetsAppGroup: $(PURRGETS_APP_GROUP)
         NSCalendarsFullAccessUsageDescription: Purrgets reads your calendar so you can turn an event into a countdown.
         ITSAppUsesNonExemptEncryption: false
+        LSApplicationCategoryType: public.app-category.utilities
     entitlements:
       path: App/App-macOS.entitlements
       properties:
