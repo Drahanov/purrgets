@@ -10,7 +10,7 @@ enum AppInfo {
     static let supportEmail = "supp.bld.tech@gmail.com"
     /// The App Store id, once the app has one. Turns on "Share" and the direct review page.
     static let appStoreID: String? = nil
-    static let privacyURL: URL? = nil
+    static let privacyURL = URL(string: "https://drahanov.github.io/purrgets/privacy.html")
     static let termsURL: URL? = nil
 
     static var version: String {
