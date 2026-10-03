@@ -12,6 +12,8 @@ struct TrackerEntry: TimelineEntry {
     let content: Content
     /// The tracker shown, for taps: the cat pokes it, the rest of the card opens it in the app.
     var trackerID: String?
+    /// The gallery's made-up sample, badged so nobody mistakes it for their own tracker.
+    var isExample = false
 
     var cameoPose: WidgetContent.Cameo.Pose? {
         if case .tracker(let content) = content { content.cameo?.pose } else { nil }
@@ -80,7 +82,7 @@ struct TrackerProvider: AppIntentTimelineProvider {
     /// The widget gallery shows a sample before the user picks anything.
     private func sample(for family: WidgetFamily) -> TrackerEntry {
         let state = PreviewStates.shared.named(name: "countdown-number", maxDots: family.cardSize.maxDots)
-        return TrackerEntry(date: .now, content: .tracker(WidgetContent(state: state)))
+        return TrackerEntry(date: .now, content: .tracker(WidgetContent(state: state)), isExample: true)
     }
 }
 
