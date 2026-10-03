@@ -88,6 +88,7 @@ targets:
             CFBundleURLSchemes: [purrgets]
         PurrgetsAppGroup: $(PURRGETS_APP_GROUP)
         NSCalendarsFullAccessUsageDescription: Purrgets reads your calendar so you can turn an event into a countdown.
+        ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
     dependencies:
       - target: PurrgetsWidgetiOS
@@ -123,6 +124,7 @@ targets:
             CFBundleURLSchemes: [purrgets]
         PurrgetsAppGroup: $(PURRGETS_APP_GROUP)
         NSCalendarsFullAccessUsageDescription: Purrgets reads your calendar so you can turn an event into a countdown.
+        ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: App/App-macOS.entitlements
       properties:
@@ -133,12 +135,12 @@ targets:
       base:
         PURRGETS_APP_GROUP: $(TeamIdentifierPrefix)com.drahanov.purrgets
         ENABLE_HARDENED_RUNTIME: YES
-        # Ink sidebar selection and controls instead of the system blue.
-        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         # Dock, Finder and the app menu show the product name, not the display name.
         # The module keeps the target name so it doesn't clash with `enum Purrgets`.
         PRODUCT_NAME: Purrgets
         PRODUCT_MODULE_NAME: PurrgetsMac
+        # Ink sidebar selection and controls instead of the system blue.
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
     dependencies:
       - target: PurrgetsWidgetMac
 

@@ -7,7 +7,7 @@ import UIKit
 /// Where support, reviews and legal pages live. Empty or nil hides what needs it.
 enum AppInfo {
     /// Bug reports and feedback go here. Empty leaves the To field for the user to fill.
-    static let supportEmail = ""
+    static let supportEmail = "supp.bld.tech@gmail.com"
     /// The App Store id, once the app has one. Turns on "Share" and the direct review page.
     static let appStoreID: String? = nil
     static let privacyURL: URL? = nil

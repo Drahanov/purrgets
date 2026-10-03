@@ -289,7 +289,7 @@ struct HomeView: View {
 
 private struct HomeHeader: View {
     var count: Int
-    /// Tapping the cat opens the cat show.
+    /// Tapping the cat opens the cat show. Debug builds only.
     var openCats: () -> Void
 
     var body: some View {
@@ -304,7 +304,9 @@ private struct HomeHeader: View {
             }
             Spacer()
             BlinkingCat(size: 40)
+                #if DEBUG
                 .simultaneousGesture(TapGesture().onEnded(openCats))
+                #endif
                 .padding(.bottom, 4)
         }
         .padding(.top, Platform.isMac ? 8 : 12)
