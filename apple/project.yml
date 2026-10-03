@@ -14,7 +14,7 @@ settings:
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "2"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
     # The Kotlin framework built by Gradle (see the "Build Kotlin" phase).
     FRAMEWORK_SEARCH_PATHS: $(SRCROOT)/../sharedLogic/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
@@ -82,6 +82,8 @@ targets:
     info:
       path: App/Info-iOS.plist
       properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDisplayName: Purrgets
         CFBundleURLTypes:
           - CFBundleURLName: com.drahanov.purrgets
@@ -101,6 +103,8 @@ targets:
     info:
       path: Widget/Info-iOS.plist
       properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDisplayName: Purrgets
         PurrgetsAppGroup: $(PURRGETS_APP_GROUP)
         NSExtension:
@@ -120,6 +124,8 @@ targets:
     info:
       path: App/Info-macOS.plist
       properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDisplayName: Purrgets
         CFBundleURLTypes:
           - CFBundleURLName: com.drahanov.purrgets
@@ -153,6 +159,8 @@ targets:
     info:
       path: Widget/Info-macOS.plist
       properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDisplayName: Purrgets
         PurrgetsAppGroup: $(PURRGETS_APP_GROUP)
         NSExtension:
