@@ -212,7 +212,18 @@ def render(name, html, w, h):
                     f"--window-size={w},{h}", "--force-device-scale-factor=2",
                     f"--screenshot={OUT / name}", f"file://{f.name}"],
                    check=True, capture_output=True)
+    round_corners(OUT / name)
     print(OUT / name)
+
+
+def round_corners(path, radius=56):
+    """Transparent rounded corners, since GitHub strips CSS from READMEs."""
+    from PIL import Image, ImageDraw
+    img = Image.open(path).convert("RGBA")
+    mask = Image.new("L", img.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, *img.size), radius, fill=255)
+    img.putalpha(mask)
+    img.save(path)
 
 
 render("architecture.png", architecture(), 1400, 830)
