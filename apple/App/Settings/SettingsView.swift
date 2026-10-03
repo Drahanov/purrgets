@@ -17,6 +17,74 @@ struct SettingsView: View {
     @State private var toast: String?
 
     var body: some View {
+        #if os(macOS)
+        macBody
+        #else
+        phoneBody
+        #endif
+    }
+
+    #if os(macOS)
+    /// The Settings page in the Mac sidebar: the same form look as the editor.
+    private var macBody: some View {
+        Form {
+            Section("Widgets") {
+                MacFormRow(title: "How to add a widget", note: "On the desktop, step by step.", icon: "plus.rectangle.on.rectangle", tint: Palette.marigold) {
+                    Button("Show guide") { showsGuide = true }
+                }
+                MacFormRow(title: "Show the guide after saving", note: "Right after you add a new tracker.", icon: "sparkles", tint: Palette.marigold) {
+                    Toggle("", isOn: .init(get: { !hideGuide }, set: { hideGuide = !$0 })).labelsHidden()
+                }
+            }
+            Section("Mr Joe Long") {
+                MacFormRow(title: "Replay intro", note: "He hangs from the top again. You pull.", icon: "arrow.counterclockwise", tint: Palette.tangerine) {
+                    Button("Replay") { replayIntro() }
+                }
+                #if DEBUG
+                MacFormRow(title: "Cat show", note: "Every pose and cameo. Debug builds only.", icon: "pawprint.fill", tint: Palette.sand) {
+                    Button("Open") { showsCats = true }
+                }
+                #endif
+            }
+            Section("Support") {
+                MacFormRow(title: "Rate Purrgets", note: "Joe pretends not to care. He reads every one.", icon: "star.fill", tint: Palette.tangerine) {
+                    Button("Rate…") { rate() }
+                }
+                MacFormRow(title: "Report a bug", note: "An email with your Mac's details filled in.", icon: "ladybug.fill", tint: Palette.sand) {
+                    Button("Email…") { mail(AppInfo.mail(subject: "Purrgets bug", diagnostics: store.trackers.count)) }
+                }
+                MacFormRow(title: "Send feedback", note: "Ideas, wishes, kind words.", icon: "bubble.left.fill", tint: Palette.marigold) {
+                    Button("Email…") { mail(AppInfo.mail(subject: "Purrgets feedback")) }
+                }
+                if let link = AppInfo.appStoreURL {
+                    MacFormRow(title: "Tell a friend", note: "Countdowns with a cat in them.", icon: "square.and.arrow.up", tint: Palette.tangerine) {
+                        ShareLink("Share…", item: link, message: Text("Countdowns with a cat in them."))
+                    }
+                }
+            }
+            if AppInfo.privacyURL != nil || AppInfo.termsURL != nil {
+                Section("About") {
+                    if let url = AppInfo.privacyURL { Link("Privacy policy", destination: url) }
+                    if let url = AppInfo.termsURL { Link("Terms of use", destination: url) }
+                }
+            }
+            Section {
+                SettingsFooter().padding(.vertical, 8)
+            }
+        }
+        .macFormStyle()
+        .overlay(alignment: .bottom) { toastView }
+        .sheet(isPresented: $showsGuide) {
+            AddWidgetGuide(cards: store.trackers.last.map { tracker in GuideCards { store.content(for: tracker, size: $0) } } ?? .sample) {
+                hideGuide = true
+            }
+        }
+        .sheet(isPresented: $showsCats) { CatShowView() }
+        .task { await store.load() }
+    }
+    #endif
+
+    private var phoneBody: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 22) {
@@ -113,6 +181,9 @@ struct SettingsView: View {
     private func replayIntro() {
         seenIntro = false
         if Platform.isMac {
+            #if os(macOS)
+            MacRouter.shared.section = .all
+            #endif
             openWindow(id: Platform.mainWindow)
             Platform.activate()
         } else {

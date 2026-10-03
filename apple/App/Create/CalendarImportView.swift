@@ -4,43 +4,53 @@ import SwiftUI
 /// Upcoming calendar events, grouped by month. Tap one to make it a countdown.
 struct CalendarImportView: View {
     var pick: (EditorDraft) -> Void
+    /// A page in the Mac sidebar instead of a sheet: no close button, no own navigation.
+    var embedded = false
     @Environment(TrackerStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var result: CalendarEventsResult?
 
     var body: some View {
-        NavigationStack {
-            Group {
-                switch result {
-                case nil:
-                    VStack(spacing: 14) {
-                        BlinkingCat(size: 54)
-                        Text("Looking at your calendar…").font(.rounded(15, .heavy)).opacity(0.6)
+        if embedded {
+            events
+        } else {
+            NavigationStack {
+                events
+                    .navigationTitle("Import event")
+                    .inlineTitle()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button { dismiss() } label: { Image(systemName: "xmark") }
+                                .accessibilityLabel("Close")
+                        }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                case .events(let events) where events.isEmpty:
-                    message(title: "No upcoming events", text: "Nothing on your calendar for the next year.", settings: false)
-                case .events(let events):
-                    list(events)
-                case .noAccess:
-                    message(title: "Purrgets can't see your calendar", text: "Allow calendar access in Settings to turn events into countdowns.", settings: true)
-                case .unavailable:
-                    message(title: "No calendar here", text: "This device has no calendar to import from.", settings: false)
-                }
             }
-            .foregroundStyle(Palette.ink)
-            .background(Palette.paper.ignoresSafeArea())
-            .navigationTitle("Import event")
-            .inlineTitle()
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { dismiss() } label: { Image(systemName: "xmark") }
-                        .accessibilityLabel("Close")
+            .tint(Palette.ink)
+            .frame(minWidth: Platform.isMac ? 480 : nil, minHeight: Platform.isMac ? 560 : nil)
+        }
+    }
+
+    private var events: some View {
+        Group {
+            switch result {
+            case nil:
+                VStack(spacing: 14) {
+                    BlinkingCat(size: 54)
+                    Text("Looking at your calendar…").font(.rounded(15, .heavy)).opacity(0.6)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .events(let events) where events.isEmpty:
+                message(title: "No upcoming events", text: "Nothing on your calendar for the next year.", settings: false)
+            case .events(let events):
+                list(events)
+            case .noAccess:
+                message(title: "Purrgets can't see your calendar", text: "Allow calendar access in Settings to turn events into countdowns.", settings: true)
+            case .unavailable:
+                message(title: "No calendar here", text: "This device has no calendar to import from.", settings: false)
             }
         }
-        .tint(Palette.ink)
-        .frame(minWidth: Platform.isMac ? 480 : nil, minHeight: Platform.isMac ? 560 : nil)
+        .foregroundStyle(Palette.ink)
+        .background(Palette.paper.ignoresSafeArea())
         .task {
             let loaded = await store.calendarEvents()
             withAnimation(Motion.gentle) { result = loaded }

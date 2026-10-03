@@ -133,6 +133,8 @@ targets:
       base:
         PURRGETS_APP_GROUP: $(TeamIdentifierPrefix)com.drahanov.purrgets
         ENABLE_HARDENED_RUNTIME: YES
+        # Ink sidebar selection and controls instead of the system blue.
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
     dependencies:
       - target: PurrgetsWidgetMac
 

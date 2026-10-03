@@ -10,9 +10,13 @@ struct PurrgetsApp: App {
     var body: some Scene {
         #if os(macOS)
         Window("Purrgets", id: Platform.mainWindow) {
-            root
+            root.frame(minWidth: 760, minHeight: 540)
         }
-        .defaultSize(width: 900, height: 700)
+        .defaultSize(width: 1080, height: 740)
+        .windowToolbarStyle(.unified)
+        .commands {
+            CommandGroup(replacing: .appSettings) { SettingsCommand() }
+        }
 
         MenuBarExtra("Purrgets", systemImage: "pawprint.fill") {
             MenuBarView()
@@ -21,11 +25,6 @@ struct PurrgetsApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Settings {
-            SettingsView()
-                .environment(store)
-                .preferredColorScheme(.light)
-        }
         #else
         WindowGroup {
             root

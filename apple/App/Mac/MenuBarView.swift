@@ -36,9 +36,8 @@ struct MenuBarView: View {
                 NSApp.activate()
             }
             .keyboardShortcut("o")
-            SettingsLink { Text("Settings…") }
+            Button("Settings…") { MacRouter.show(.settings, openWindow: openWindow) }
                 .keyboardShortcut(",")
-                .simultaneousGesture(TapGesture().onEnded { NSApp.activate() })
             Button("Quit") { NSApp.terminate(nil) }
                 .keyboardShortcut("q")
         }

@@ -52,7 +52,7 @@ struct CatVisitsSection: View {
 }
 
 /// A small Number card whose cat changes pose every couple of seconds (the widget does it every 5 minutes).
-private struct CameoReel: View {
+struct CameoReel: View {
     var content: WidgetContent
     var on: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion

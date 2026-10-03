@@ -36,18 +36,29 @@ struct HomeView: View {
     @State private var nextGuide: GuideRequest?
     @State private var menuOpen = false
     @State private var deleting: Tracker?
+    #if os(macOS)
+    @State private var router = MacRouter.shared
+    #endif
     @Namespace private var zoom
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
+            #if os(macOS)
+            MacHome(
+                section: $router.section,
+                showsContent: store.isLoaded && !showsIntro,
+                trackers: { card($0, index: $1) },
+                empty: { emptyShelf },
+                create: create,
+                pickDraft: { open($0, from: CreateMenu.sourceID) }
+            )
+            #else
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
                     HomeHeader(count: store.trackers.count) { sheet = .cats }
                     if store.isLoaded, !showsIntro {
                         if store.trackers.isEmpty {
-                            EmptyShelf(templates: store.templates) { template in
-                                open(EditorDraft(draft: template.draft), from: "template-\(template.id)")
-                            }
+                            emptyShelf
                         } else {
                             grid
                         }
@@ -61,12 +72,13 @@ struct HomeView: View {
             }
             .scrollIndicators(.hidden)
 
-            if !Platform.isMac, !showsIntro {
+            if !showsIntro {
                 CreateMenu(isOpen: $menuOpen, zoom: zoom, pick: create) {
                     menuOpen = false
                     sheet = .settings
                 }
             }
+            #endif
 
             if showsIntro {
                 IntroFlow {
@@ -77,25 +89,10 @@ struct HomeView: View {
             }
         }
         .background(Palette.paper.ignoresSafeArea())
-        .toolbar {
-            if Platform.isMac {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        ForEach(CreateOption.allCases) { option in
-                            Button { create(option) } label: { Label(option.title, systemImage: option.icon) }
-                                .keyboardShortcut(option.shortcut)
-                        }
-                    } label: {
-                        Label("New tracker", systemImage: "plus")
-                    }
-                }
-            }
-        }
         .cover(item: $editor, onDismiss: showNextGuide) { request in
-            EditorView(store: store, request: request) { saved in
+            editorScreen(request) { saved in
                 if saved, request.trackerID == nil, !hideGuide { nextGuide = GuideRequest(id: request.id) }
             }
-            .zoomTransition(request.sourceID, in: zoom)
         }
         .sheet(item: $sheet, onDismiss: showNextEditor) { sheet in
             switch sheet {
@@ -141,6 +138,22 @@ struct HomeView: View {
 
     // MARK: Grid
 
+    private var emptyShelf: some View {
+        EmptyShelf(templates: store.templates) { template in
+            open(EditorDraft(draft: template.draft), from: "template-\(template.id)")
+        }
+    }
+
+    /// The phone editor zooms out of its card; the Mac gets a sheet laid out for a pointer.
+    @ViewBuilder private func editorScreen(_ request: EditorRequest, finish: @escaping (Bool) -> Void) -> some View {
+        #if os(macOS)
+        MacEditorView(store: store, request: request, finish: finish)
+        #else
+        EditorView(store: store, request: request, finish: finish)
+            .zoomTransition(request.sourceID, in: zoom)
+        #endif
+    }
+
     private var grid: some View {
         // Redraw every minute, so numbers and fills stay live while the app is open.
         TimelineView(.everyMinute) { _ in
@@ -163,6 +176,7 @@ struct HomeView: View {
             LiveCard(content: content, size: size, index: index)
         }
         .buttonStyle(SquishStyle(scale: 0.96))
+        .hoverLift()
         .zoomSource(tracker.id, in: zoom)
         .contextMenu {
             Button { open(EditorDraft(tracker: tracker), trackerID: tracker.id, from: tracker.id) } label: {
@@ -189,8 +203,14 @@ struct HomeView: View {
         case .countdown: open(EditorDraft(kind: .countdown), from: CreateMenu.sourceID)
         case .timeSince: open(EditorDraft(kind: .timeSince), from: CreateMenu.sourceID)
         case .progress: open(EditorDraft(kind: .progress), from: CreateMenu.sourceID)
+        #if os(macOS)
+        // The Mac shows these as pages in the sidebar, not sheets.
+        case .calendar: router.section = .calendar
+        case .library: router.section = .library
+        #else
         case .calendar: sheet = .calendar
         case .library: sheet = .library
+        #endif
         }
     }
 
@@ -249,7 +269,13 @@ struct HomeView: View {
         }
         if arguments.contains("--guide") { guide = GuideRequest(id: "debug") }
         if arguments.contains("--cats") { sheet = .cats }
-        if arguments.contains("--settings") { sheet = .settings }
+        if arguments.contains("--settings") {
+            #if os(macOS)
+            router.section = .settings
+            #else
+            sheet = .settings
+            #endif
+        }
         if arguments.contains("--menu") { menuOpen = true }
         if arguments.contains("--intro") { seenIntro = false }
         if arguments.contains("--cat-show-off") { CatShow.isOn = false; WidgetCenter.shared.reloadAllTimelines() }

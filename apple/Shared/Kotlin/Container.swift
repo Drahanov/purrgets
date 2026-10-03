@@ -9,6 +9,15 @@ enum Purrgets {
     /// folder, so the app and the widget stop seeing each other's trackers. That's loud in logs
     /// and stops a debug build.
     static let folder: URL = {
+        #if DEBUG
+        // Screenshots: `--store-dir <path>` keeps sample trackers away from the real ones.
+        let arguments = ProcessInfo.processInfo.arguments
+        if let index = arguments.firstIndex(of: "--store-dir"), arguments.indices.contains(index + 1) {
+            let url = URL(fileURLWithPath: arguments[index + 1], isDirectory: true)
+            try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+            return url
+        }
+        #endif
         let group = Bundle.main.object(forInfoDictionaryKey: "PurrgetsAppGroup") as? String ?? ""
         if let shared = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) {
             return shared

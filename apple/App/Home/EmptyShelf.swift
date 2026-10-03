@@ -43,7 +43,7 @@ struct EmptyShelf: View {
             VStack(spacing: 8) {
                 Text("Nothing to count yet")
                     .font(.rounded(22, .black))
-                Text(landed == nil ? "Hang on, he's picking one for you." : "He picked this one. Tap it to start, or ask for another.")
+                Text(landed == nil ? "Hang on, he's picking one for you." : (Platform.isMac ? "He picked this one. Click it to start, or ask for another." : "He picked this one. Tap it to start, or ask for another."))
                     .font(.rounded(15, .bold))
                     .foregroundStyle(Palette.ink.opacity(0.6))
                     .multilineTextAlignment(.center)

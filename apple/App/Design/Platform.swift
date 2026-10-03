@@ -34,7 +34,8 @@ extension View {
         #if os(iOS)
         fullScreenCover(item: item, onDismiss: onDismiss, content: content)
         #else
-        sheet(item: item, onDismiss: onDismiss) { content($0).frame(minWidth: 760, minHeight: 620) }
+        // The Mac editor sizes itself.
+        sheet(item: item, onDismiss: onDismiss, content: content)
         #endif
     }
 
@@ -42,6 +43,15 @@ extension View {
     @ViewBuilder func contextMenuShape(_ shape: some Shape) -> some View {
         #if os(iOS)
         contentShape(.contextMenuPreview, shape)
+        #else
+        self
+        #endif
+    }
+
+    /// The card rises a little under the pointer (Mac). Nothing on iOS.
+    func hoverLift() -> some View {
+        #if os(macOS)
+        modifier(HoverLift())
         #else
         self
         #endif
@@ -56,6 +66,20 @@ extension View {
         #endif
     }
 }
+
+#if os(macOS)
+private struct HoverLift: ViewModifier {
+    @State private var hovered = false
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(hovered ? 1.025 : 1)
+            .shadow(color: Palette.ink.opacity(hovered ? 0.16 : 0), radius: hovered ? 16 : 0, y: hovered ? 8 : 0)
+            .onHover { hovered = $0 }
+            .motion(Motion.snappy, value: hovered)
+    }
+}
+#endif
 
 enum Platform {
     /// The Mac's single main window, opened again from the menu bar.
