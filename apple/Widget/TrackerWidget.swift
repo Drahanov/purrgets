@@ -27,7 +27,7 @@ struct TrackerWidget: Widget {
         #if os(macOS)
         "Shows one of your trackers. After adding it, right-click and Edit “Tracker” to pick which."
         #else
-        "Shows one of your trackers. After adding it, hold it and tap Edit Widget to pick which."
+        "Shows one of your trackers. After adding it, hold it and tap Edit Widget to pick which. On the Lock Screen, tap it while customizing."
         #endif
     }
 

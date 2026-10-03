@@ -30,13 +30,21 @@ struct MeetJoe: View {
     /// The pile fades once Joe has leapt off it.
     @State private var pileGone = false
 
+    private var subtitle: String {
+        #if os(macOS)
+        "Countdowns, progress and days since, right on your desktop."
+        #else
+        "Countdowns, progress and days since, right on your Home Screen."
+        #endif
+    }
+
     var body: some View {
         GeometryReader { geo in
             VStack(spacing: 0) {
                 VStack(spacing: 10) {
                     Text("Your dates, as widgets")
                         .font(.rounded(32, .black))
-                    Text("Countdowns, progress and days since, right on your Home Screen.")
+                    Text(subtitle)
                         .font(.rounded(16, .bold))
                         .foregroundStyle(Palette.ink.opacity(0.6))
                 }

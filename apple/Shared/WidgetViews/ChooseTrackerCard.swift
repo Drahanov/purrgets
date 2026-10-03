@@ -105,7 +105,7 @@ struct ChooseTrackerCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         default:
-            Text(reason == .pick ? "Purrgets · hold to pick a tracker" : "Purrgets · make a tracker first")
+            Text(reason == .pick ? "Purrgets · Customize, then tap here" : "Purrgets · make a tracker first")
                 .font(.rounded(13, .bold))
                 .lineLimit(1)
         }
@@ -126,8 +126,9 @@ struct ChooseTrackerCard: View {
         #endif
     }
 
+    /// Lock Screen widgets have no Edit Widget menu: they're set up by tapping them in Customize.
     private var lockHint: String {
-        reason == .pick ? "Hold, then Edit Widget" : "Open Purrgets to make one"
+        reason == .pick ? "Customize, then tap here" : "Open Purrgets to make one"
     }
 
     private var steps: [String] {
