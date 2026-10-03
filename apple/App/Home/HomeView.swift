@@ -256,6 +256,11 @@ struct HomeView: View {
                 await store.save(id: TrackerKt.randomTrackerId(), draft: EditorDraft(draft: template.draft))
             }
         }
+        if arguments.contains("--demo-data"), store.trackers.isEmpty {
+            for draft in DemoData.drafts() {
+                await store.save(id: TrackerKt.randomTrackerId(), draft: draft)
+            }
+        }
         if arguments.contains("--edit-first"), let first = store.trackers.first {
             open(EditorDraft(tracker: first), trackerID: first.id, from: first.id)
         }
