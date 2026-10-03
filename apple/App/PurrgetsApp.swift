@@ -18,10 +18,13 @@ struct PurrgetsApp: App {
             CommandGroup(replacing: .appSettings) { SettingsCommand() }
         }
 
-        MenuBarExtra("Purrgets", systemImage: "pawprint.fill") {
+        MenuBarExtra {
             MenuBarView()
                 .environment(store)
                 .preferredColorScheme(.light)
+        } label: {
+            // The app icon's cat ring as a template, so the menu bar tints it.
+            Image("MenuBarCat").accessibilityLabel("Purrgets")
         }
         .menuBarExtraStyle(.window)
 
