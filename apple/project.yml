@@ -135,6 +135,10 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         # Ink sidebar selection and controls instead of the system blue.
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        # Dock, Finder and the app menu show the product name, not the display name.
+        # The module keeps the target name so it doesn't clash with `enum Purrgets`.
+        PRODUCT_NAME: Purrgets
+        PRODUCT_MODULE_NAME: PurrgetsMac
     dependencies:
       - target: PurrgetsWidgetMac
 
