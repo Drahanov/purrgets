@@ -9,7 +9,7 @@ enum AppInfo {
     /// Bug reports and feedback go here. Empty leaves the To field for the user to fill.
     static let supportEmail = "supp.bld.tech@gmail.com"
     /// The App Store id, once the app has one. Turns on "Share" and the direct review page.
-    static let appStoreID: String? = nil
+    static let appStoreID: String? = "6818740758"
     static let privacyURL = URL(string: "https://drahanov.github.io/purrgets/privacy.html")
     static let termsURL: URL? = nil
 
